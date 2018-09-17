@@ -336,7 +336,7 @@ class LexicalAnalyzer < TokenTypes
       @table.setItemJustify(index, 1, FXTableItem::CENTER_X|FXTableItem::CENTER_Y)
       @table.setItemJustify(index, 2, FXTableItem::CENTER_X|FXTableItem::CENTER_Y)
     }
-    @table.setColumnWidth(0, 192)
+    @table.setColumnWidth(0, 249)
     @table.setColumnWidth(1, 15)
     @table.setColumnWidth(2, 15)
     @table.setColumnText(0, "Lexema")

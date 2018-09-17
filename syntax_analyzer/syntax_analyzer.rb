@@ -24,7 +24,7 @@ class SyntaxAnalyzer < TokenTypes
   # Genera el árbol desplegable para el entorno gráfico.
   private
   def generate_tree(node, parent)
-    aux = @tree_list.appendItem(parent, node.content.lexeme)
+    aux = @tree_list.appendItem(parent, node.token.lexeme) # El árbol sintáctico imprime el lexema.
     @tree_list.expandTree(aux) # Expande el elemento.
     siblings = node.children
     siblings.each do | node |

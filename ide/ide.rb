@@ -70,7 +70,7 @@ class IDE < FXMainWindow
     @errors_text.setText('')
     @lexical_table.clearItems
     @syntax_tree_list.clearItems
-    @semantic_text.setText('')
+    @semantic_tree_list.clearItems
   end
 
   # Inicia el proceso de compilación.
@@ -92,25 +92,32 @@ class IDE < FXMainWindow
   # Genera el contenido de la ventana.
   private
   def init_contents
-    contents = FXHorizontalFrame.new(self,  LAYOUT_FILL_X|LAYOUT_FILL_Y,
+    contents = FXHorizontalFrame.new(self, FRAME_RAISED|LAYOUT_FILL_X|LAYOUT_FILL_Y,
                                      :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0,
                                      :hSpacing => 0, :vSpacing => 0)
-    # Spring análisis (Anchura absoluta).
-    FXSpring.new(contents, LAYOUT_FILL_Y, :width => 5) do | spring |
+    # Bloque izquierdo.
+    FXSpring.new(contents, LAYOUT_FILL_Y, :width => 5, :padding => 0) do | spring |
       # Salidas del análisis.
       analysis_tabs = FXTabBook.new(spring, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_BOTTOM)
       analysis_tabs.setBackColor(FXRGB(50, 50, 50))
       analysis_tabs.tabStyle = TABBOOK_BOTTOMTABS
       # Primer pestaña (Léxico).
-      lexical_tab = FXTabItem.new(analysis_tabs, "Léxico", nil)
+      lexical_tab = FXTabItem.new(analysis_tabs, "Léxico",:padLeft => 36, :padRight => 36)
       lexical_tab.setBackColor(FXRGB(50, 50, 50))
       lexical_tab.setTextColor(FXRGB(255, 255, 255))
       lexical_frame = FXHorizontalFrame.new(analysis_tabs)
       lexical_frame.setBackColor(FXRGB(50, 50, 50))
       @lexical_table = FXTable.new(lexical_frame,:opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TABLE_READONLY|\
                                                           TABLE_NO_COLSELECT|TABLE_NO_ROWSELECT)
+      @lexical_table.setTableSize(0, 3)
+      @lexical_table.setColumnWidth(0, 249)
+      @lexical_table.setColumnWidth(1, 15)
+      @lexical_table.setColumnWidth(2, 15)
+      @lexical_table.setColumnText(0, "Lexema")
+      @lexical_table.setColumnText(1, 'F')
+      @lexical_table.setColumnText(2, 'C')
       # Segunda pestaña (Sintáctico).
-      syntax_tab = FXTabItem.new(analysis_tabs, "Sintáctico", nil)
+      syntax_tab = FXTabItem.new(analysis_tabs, "Sintáctico",:padLeft => 36, :padRight => 36)
       syntax_tab.setBackColor(FXRGB(50, 50, 50))
       syntax_tab.setTextColor(FXRGB(255, 255, 255))
       syntax_frame = FXHorizontalFrame.new(analysis_tabs)
@@ -120,81 +127,100 @@ class IDE < FXMainWindow
       @syntax_tree_list.setBackColor(FXRGB(50, 50, 50))
       @syntax_tree_list.setTextColor(FXRGB(200, 200, 200))
       # Tercer pestaña (Semántico).
-      semantic_tab = FXTabItem.new(analysis_tabs, "Semántico", nil)
+      semantic_tab = FXTabItem.new(analysis_tabs, "Semántico", :padLeft => 36, :padRight => 36)
       semantic_tab.setBackColor(FXRGB(50, 50, 50))
       semantic_tab.setTextColor(FXRGB(255, 255, 255))
       semantic_frame = FXHorizontalFrame.new(analysis_tabs)
       semantic_frame.setBackColor(FXRGB(50, 50, 50))
-      @semantic_text = FXText.new(semantic_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
-      @semantic_text.setBackColor(FXRGB(50, 50, 50))
-      @semantic_text.setTextColor(FXRGB(200, 200, 200))
-      # Cuarta pestaña (Tabla Hash).
-      hash_tab = FXTabItem.new(analysis_tabs, "Tabla Hash", nil)
-      hash_tab.setBackColor(FXRGB(50, 50, 50))
-      hash_tab.setTextColor(FXRGB(255, 255, 255))
-      hash_frame = FXHorizontalFrame.new(analysis_tabs)
-      hash_frame.setBackColor(FXRGB(50, 50, 50))
-      @hash_text = FXText.new(hash_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
-      @hash_text.setBackColor(FXRGB(50, 50, 50))
-      @hash_text.setTextColor(FXRGB(200, 200, 200))
-      # Quinta pestaña (Código intermedio).
-      intermediate_tab = FXTabItem.new(analysis_tabs, "Código Intermedio", nil)
-      intermediate_tab.setBackColor(FXRGB(50, 50, 50))
-      intermediate_tab.setTextColor(FXRGB(255, 255, 255))
-      intermediate_frame = FXHorizontalFrame.new(analysis_tabs)
-      intermediate_frame.setBackColor(FXRGB(50, 50, 50))
-      @intermediate_text = FXText.new(intermediate_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
-      @intermediate_text.setBackColor(FXRGB(50, 50, 50))
-      @intermediate_text.setTextColor(FXRGB(200, 200, 200))
+      @semantic_tree_list = FXTreeList.new(semantic_frame, :opts => TREELIST_NORMAL|TREELIST_SHOWS_LINES|\
+                                                                TREELIST_SHOWS_BOXES|TREELIST_ROOT_BOXES|LAYOUT_FILL)
+      @semantic_tree_list.setBackColor(FXRGB(50, 50, 50))
+      @semantic_tree_list.setTextColor(FXRGB(200, 200, 200))
     end
-    # Spring texto (Anchura relativa 60%).
-    FXSpring.new(contents, LAYOUT_FILL_X|LAYOUT_FILL_Y, :relw => 60) do |spring|
-      @code = FXText.new(spring, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_SHOWACTIVE)
-      @code.setMarginLeft(10)
-      @code.setBackColor(FXRGB(50, 50, 50))
-      @code.setTextColor(FXRGB(200, 200, 200))
-      @code.setActiveBackColor(FXRGB(70, 70, 70))
-      @code.setCursorColor(FXRGB(250, 250, 250))
-      @code.barColumns = 5 # Contador de líneas.
-      @code.setBarColor(FXRGB(220, 220, 220))
-      @code.connect(SEL_CHANGED) do
-        cursor_position
-        text_control
-      end
-    end
-    # Spring resultados (Anchura relativa 40%).
-    FXSpring.new(contents, LAYOUT_FILL_X|LAYOUT_FILL_Y, :relw => 40) do | spring |
-      # Salidas del código.
-      output_tabs = FXTabBook.new(spring, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_TOP)
-      output_tabs.setBackColor(FXRGB(50, 50, 50))
-      output_tabs.tabStyle = TABBOOK_BOTTOMTABS
-      # Primer Pestaña (Resultados).
-      results_tab = FXTabItem.new(output_tabs, "Salida ", nil)
-      results_tab.setBackColor(FXRGB(50, 50, 50))
-      results_tab.setTextColor(FXRGB(255, 255, 255))
-      results_frame = FXHorizontalFrame.new(output_tabs)
-      results_frame.setBackColor(FXRGB(50, 50, 50))
-      @results_text = FXText.new(results_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
-      @results_text.setBackColor(FXRGB(50, 50, 50))
-      @results_text.setTextColor(FXRGB(0, 255, 0))
-      @results_text.setCursorColor(FXRGB(50, 50, 50))
-      # Segunda pestaña (Errores).
-      errors_tab = FXTabItem.new(output_tabs, "Errores", nil)
-      errors_tab.setBackColor(FXRGB(50, 50, 50))
-      errors_tab.setTextColor(FXRGB(255, 255, 255))
-      errors_frame = FXHorizontalFrame.new(output_tabs)
-      errors_frame.setBackColor(FXRGB(50, 50, 50))
-      @errors_text = FXText.new(errors_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
-      @errors_text.setBackColor(FXRGB(50, 50, 50))
-      @errors_text.setTextColor(FXRGB(255, 0, 0))
-      @errors_text.setCursorColor(FXRGB(50, 50, 50))
+    # Bloque derecho.
+    FXSpring.new(contents, LAYOUT_FILL_X|LAYOUT_FILL_Y, :relw => 50, :padding => 0) do | spring |
+      frame = FXVerticalFrame.new(spring, FRAME_RAISED|LAYOUT_FILL_X|LAYOUT_FILL_Y,
+                                    :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0,
+                                    :hSpacing => 0, :vSpacing => 0)
+        FXSpring.new(frame, LAYOUT_FILL_X|LAYOUT_FILL_Y, :relh => 2, :padding => 0) do | subspring |
+          # Código.
+          @code = FXText.new(subspring, :opts => LAYOUT_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_SHOWACTIVE)
+          @code.setMarginLeft(10)
+          @code.setBackColor(FXRGB(50, 50, 50))
+          @code.setTextColor(FXRGB(200, 200, 200))
+          @code.setActiveBackColor(FXRGB(70, 70, 70))
+          @code.setCursorColor(FXRGB(250, 250, 250))
+          @code.barColumns = 5 # Contador de líneas.
+          @code.setBarColor(FXRGB(220, 220, 220))
+          @code.connect(SEL_CHANGED) do
+            cursor_position
+            text_control
+          end
+        end
+        FXSpring.new(frame, LAYOUT_FILL_X|LAYOUT_FILL_Y, :relh => 1, :padding => 0) do | subspring |
+          inner_frame = FXHorizontalFrame.new(subspring, FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|LAYOUT_FILL_Y,
+                                :padLeft => 0, :padRight => 0, :padTop => 0, :padBottom => 0,
+                                :hSpacing => 0, :vSpacing => 0)
+          # Salidas del código.
+          output_tabs = FXTabBook.new(inner_frame, :opts => LAYOUT_BOTTOM|LAYOUT_FILL_X|LAYOUT_FILL_Y)
+          output_tabs.setBackColor(FXRGB(50, 50, 50))
+          output_tabs.tabStyle = TABBOOK_BOTTOMTABS
+          # Primer Pestaña (Resultados).
+          results_tab = FXTabItem.new(output_tabs, "Salida ", :padLeft => 60, :padRight => 60)
+          results_tab.setBackColor(FXRGB(50, 50, 50))
+          results_tab.setTextColor(FXRGB(255, 255, 255))
+          results_frame = FXHorizontalFrame.new(output_tabs)
+          results_frame.setBackColor(FXRGB(50, 50, 50))
+          @results_text = FXText.new(results_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
+          @results_text.setBackColor(FXRGB(50, 50, 50))
+          @results_text.setTextColor(FXRGB(0, 255, 0))
+          @results_text.setCursorColor(FXRGB(50, 50, 50))
+          # Segunda pestaña (Errores).
+          errors_tab = FXTabItem.new(output_tabs, "Errores", :padLeft => 60, :padRight => 60)
+          errors_tab.setBackColor(FXRGB(50, 50, 50))
+          errors_tab.setTextColor(FXRGB(255, 255, 255))
+          errors_frame = FXHorizontalFrame.new(output_tabs)
+          errors_frame.setBackColor(FXRGB(50, 50, 50))
+          @errors_text = FXText.new(errors_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
+          @errors_text.setBackColor(FXRGB(50, 50, 50))
+          @errors_text.setTextColor(FXRGB(255, 0, 0))
+          @errors_text.setCursorColor(FXRGB(50, 50, 50))
+          # Tercera pestaña (Tabla Hash).
+          hash_tab = FXTabItem.new(output_tabs, "Tabla Hash", :padLeft => 60, :padRight => 60)
+          hash_tab.setBackColor(FXRGB(50, 50, 50))
+          hash_tab.setTextColor(FXRGB(255, 255, 255))
+          hash_frame = FXHorizontalFrame.new(output_tabs)
+          hash_frame.setBackColor(FXRGB(50, 50, 50))
+          @hash_table = FXTable.new(hash_frame,:opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TABLE_READONLY|\
+                                                            TABLE_NO_COLSELECT|TABLE_NO_ROWSELECT)
+          @hash_table.setTableSize(0, 5)
+          @hash_table.setColumnWidth(0, 200)
+          @hash_table.setColumnWidth(1, 200)
+          @hash_table.setColumnWidth(2, 200)
+          @hash_table.setColumnWidth(3, 100)
+          @hash_table.setColumnWidth(4, 100)
+          @hash_table.setColumnText(0, "Nombre de la variable")
+          @hash_table.setColumnText(1, "Localidad")
+          @hash_table.setColumnText(2, "Línea")
+          @hash_table.setColumnText(3, "Valor")
+          @hash_table.setColumnText(4, "Tipo")
+          # Cuarta pestaña (Código intermedio).
+          intermediate_tab = FXTabItem.new(output_tabs, "Código Intermedio", :padLeft => 40, :padRight => 40)
+          intermediate_tab.setBackColor(FXRGB(50, 50, 50))
+          intermediate_tab.setTextColor(FXRGB(255, 255, 255))
+          intermediate_frame = FXHorizontalFrame.new(output_tabs)
+          intermediate_frame.setBackColor(FXRGB(50, 50, 50))
+          @intermediate_text = FXText.new(intermediate_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
+          @intermediate_text.setBackColor(FXRGB(50, 50, 50))
+          @intermediate_text.setTextColor(FXRGB(200, 200, 200))
+        end
     end
   end
 
   # Genera la barra de menú.
   private
   def init_menu_bar
-    menu_frame = FXHorizontalFrame.new(self, LAYOUT_SIDE_TOP | LAYOUT_FILL_X)
+    menu_frame = FXHorizontalFrame.new(self, LAYOUT_SIDE_TOP|LAYOUT_FILL_X)
     menu_frame.setBackColor(FXRGB(50, 50, 50))
     # Menú desplegable.
     menu_bar = FXMenuBar.new(menu_frame, :width => 30, :height => 30)
@@ -360,7 +386,7 @@ class IDE < FXMainWindow
   private
   def semantic_analysis
     if (@errors_text.text.length == 0) # Condición para comprobar que no hubo errores sintácticos.
-      @semantic_analyzer = SemanticAnalyzer.new(@syntax_analyzer.syntax_tree)
+      @semantic_analyzer = SemanticAnalyzer.new(@syntax_analyzer.syntax_tree, @semantic_tree_list, @hash_table)
       @errors_text.appendText(@semantic_analyzer.errors)
     else
       @errors_text.text += "\n\nNo se pudo iniciar el análisis semántico ya que existen errores en etapas previas."
