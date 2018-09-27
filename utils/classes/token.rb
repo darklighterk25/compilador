@@ -9,9 +9,9 @@ class Token
   def to_s(error_type = :none)
     case error_type
       when :lexical
-        "Lexema \"#{@lexeme}\" no válido [Fila #{@location[:file]}, Columna #{@location[:column]}].\n"
+        "Lexema \"#{@lexeme}\" no válido [Fila #{@location[:row]}, Columna #{@location[:column]}].\n"
       when :syntactical
-        "\n#{@type} [Fila: #{@location[:file]}, Columna: #{@location[:column]}]."
+        "\n#{@type} [Fila: #{@location[:row]}, Columna: #{@location[:column]}]."
       when :none
         "Tipo: #{@type} | Lexema: #{@lexeme} | Range: #{@range} | Location: #{@location} | Style: #{@style}"
     end

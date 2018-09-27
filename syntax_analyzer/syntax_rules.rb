@@ -241,9 +241,13 @@ module SyntaxRules
     else
       # Si es incremento o decremento debemos crear el sub-árbol correspondiente.
       if @token.type == @TOKEN_TYPE[:increment]
+        @token.type = @TOKEN_TYPE[:assignation] # Se cambia el incremento por asignación.
+        @token.lexeme = ":="
         aux = new_node('', Token.new(@TOKEN_TYPE[:addition], '+', @token.range,
                                      @token.location, @TOKEN_STYLE[:addition]))
       elsif @token.type == @TOKEN_TYPE[:decrement]
+        @token.type = @TOKEN_TYPE[:assignation] # Se cambia el incremento por asignación.
+        @token.lexeme = ":="
         aux = new_node('', Token.new(@TOKEN_TYPE[:subtraction], '-', @token.range,
                                      @token.location, @TOKEN_STYLE[:subtraction]))
       end

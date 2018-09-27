@@ -27,7 +27,7 @@ class LexicalAnalyzer < TokenTypes
   # El método recibe un string para hacer el análisis léxico y devuelve los tokens en un array.
   def run(string)
     @column = '-' # Inicializa las el conteo de columnas.
-    @file = '-' # Inicializa las el conteo de filas.
+    @row = '-' # Inicializa las el conteo de filas.
     @iterator = -1 # Se reinicia el iterador.
     @tokens = [] # Se limpian el array ya que solo existirá una instancia.
     identifier = '' # Guarda el string del identificador.
@@ -305,7 +305,7 @@ class LexicalAnalyzer < TokenTypes
       if state == @STATE_TYPE[:done] # Estado final. Se ingresan los resultados al array y se reincian las variables.
         style = get_token_style(token)
         @tokens.push( Token.new(token, lexeme, {start: @iterator - lexeme.length, end: @iterator},
-                                {file: @file, column: @column}, style) )
+                                {row: @row, column: @column}, style) )
         character = unget_char(string)
         @column = '-'
         lexeme = ''
@@ -313,7 +313,7 @@ class LexicalAnalyzer < TokenTypes
         token = @TOKEN_TYPE[:eof]
       end
     end
-    @tokens.push(Token.new(@TOKEN_TYPE[:eof], '', {start: @iterator, end: @iterator}, {file: @file, column: @column},
+    @tokens.push(Token.new(@TOKEN_TYPE[:eof], '', {start: @iterator, end: @iterator}, {row: @row, column: @column},
                            @TOKEN_STYLE[:eof])) # Token EOF.
     tokens, @errors = to_s
     if @test # Si se ejecuta en modo prueba generamos los archivos.
@@ -331,7 +331,7 @@ class LexicalAnalyzer < TokenTypes
     @tokens.each_with_index { | token, index |
       @table.setRowText(index, token.type)
       @table.setItemText(index, 0, token.lexeme)
-      @table.setItemText(index, 1, token.location[:file].to_s)
+      @table.setItemText(index, 1, token.location[:row].to_s)
       @table.setItemText(index, 2, token.location[:column].to_s)
       @table.setItemJustify(index, 1, FXTableItem::CENTER_X|FXTableItem::CENTER_Y)
       @table.setItemJustify(index, 2, FXTableItem::CENTER_X|FXTableItem::CENTER_Y)
