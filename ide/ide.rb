@@ -398,7 +398,11 @@ class IDE < FXMainWindow
   def syntax_analysis
     if (@errors_text.text.length == 0) # Condición para comprobar que no hubo errores léxicos.
       @syntax_analyzer = SyntaxAnalyzer.new(@lexical_analyzer.tokens, @syntax_tree_list)
-      @errors_text.appendText(@syntax_analyzer.errors)
+      if(@syntax_analyzer.errors.eql?("Errores sintácticos:\n\n"))
+        @errors_text.appendText("")
+      else
+        @errors_text.appendText(@syntax_analyzer.errors)
+      end
     else
       @errors_text.text += "\n\nNo se pudo iniciar el análisis sintáctico ya que existen errores léxicos."
     end

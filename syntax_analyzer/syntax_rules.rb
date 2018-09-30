@@ -1,7 +1,7 @@
 module SyntaxRules
 
   def program
-    t = new_node("main")
+    t = new_node("main", "main")
     match(@TOKEN_TYPE[:rw_main])
     match(@TOKEN_TYPE[:op_brace])
     if t != nil
@@ -53,7 +53,7 @@ module SyntaxRules
     t = nil
     if @token.type == @TOKEN_TYPE[:rw_integer] or @token.type == @TOKEN_TYPE[:rw_float]\
     or @token.type == @TOKEN_TYPE[:rw_bool]
-      t = new_node("statement")
+      t = new_node("declaration", @token.type)
       match(@token.type)
       aux = variable_list
       aux.each do | x |
@@ -70,7 +70,7 @@ module SyntaxRules
     siblings = []
     i = 0
     while @token.type == @TOKEN_TYPE[:identifier]
-      siblings[i] = new_node("expression")
+      siblings[i] = new_node("identifier", "idK")
       i += 1
       match(@token.type)
       if @token.type == @TOKEN_TYPE[:comma]
@@ -132,16 +132,16 @@ module SyntaxRules
   end
 
   def selection
-    t = new_node("statement")
+    t = new_node("statement", "ifK")
     match(@TOKEN_TYPE[:rw_if])
-    match(@TOKEN_TYPE[:op_brace])
+    match(@TOKEN_TYPE[:op_parenthesis])
     if t != nil
       aux = expression
       if aux != nil
         t << aux
       end
     end
-    match(@TOKEN_TYPE[:cl_brace])
+    match(@TOKEN_TYPE[:cl_parenthesis])
     match(@TOKEN_TYPE[:rw_then])
     if t != nil
       t << block
@@ -156,7 +156,7 @@ module SyntaxRules
   end
 
   def iteration
-    t = new_node("statement")
+    t = new_node("statement", "whileK")
     match(@TOKEN_TYPE[:rw_while])
     match(@TOKEN_TYPE[:op_parenthesis])
     if t != nil
@@ -173,7 +173,7 @@ module SyntaxRules
   end
 
   def repetition
-    t = new_node("statement")
+    t = new_node("statement", "doK")
     match(@TOKEN_TYPE[:rw_do])
     if t != nil
       t << block
@@ -192,10 +192,10 @@ module SyntaxRules
   end
 
   def sent_read
-    t = new_node("statement")
+    t = new_node("statement", "readK")
     match(@TOKEN_TYPE[:rw_read])
     if t != nil
-      t << new_node("expression")
+      t << new_node("expression", "idK")
       match(@TOKEN_TYPE[:identifier])
     end
     match(@TOKEN_TYPE[:semicolon])
@@ -204,15 +204,17 @@ module SyntaxRules
 
   def sent_write
     if @token.type == @TOKEN_TYPE[:rw_write]
-      t = new_node("statement")
+      t = new_node("statement", "writeK")
       match(@TOKEN_TYPE[:rw_write])
       if t != nil
-        t << new_node("expression")
+        t << new_node("expression", "stringK")
         match(@TOKEN_TYPE[:string])
+        match(@TOKEN_TYPE[:comma])
         t << expression
+        match(@TOKEN_TYPE[:semicolon])
       end
     elsif @token.type == @TOKEN_TYPE[:string]
-      t = new_node("expression")
+      t = new_node("expression", "stringK")
       match(@TOKEN_TYPE[:string])
       match(@TOKEN_TYPE[:semicolon])
     end
@@ -220,7 +222,7 @@ module SyntaxRules
   end
 
   def block
-    t = new_node("statement")
+    t = new_node("statement", "blockK")
     match(@TOKEN_TYPE[:op_brace])
     if t != nil
       aux = sentence_list
@@ -233,46 +235,45 @@ module SyntaxRules
   end
 
   def assignation
-    t = new_node("statement")
+    t = new_node("statement", "idK")
     match(@TOKEN_TYPE[:identifier])
-    p = new_node("expression")
     if @token.type == @TOKEN_TYPE[:assign]
-      aux = expression
+      p = new_node("statement", "assignK")
+      match(@TOKEN_TYPE[:assign])
+    elsif @token.type == @TOKEN_TYPE[:increment] || @token.type == @TOKEN_TYPE[:decrement]
+
+      id = new_node("statement", "idK", t.token)
+      assign_token = Token.new(@TOKEN_TYPE[:assign], ":=", 2, t.token.location, t.token.style)
+      assign_node = new_node("statement", "assignK", assign_token)
+      if (@token.type == @TOKEN_TYPE[:increment])
+        op_token = Token.new(@TOKEN_TYPE[:addition], "+", 1, t.token.location, t.token.style)
+      else
+        op_token = Token.new(@TOKEN_TYPE[:subtraction], "+", 1, t.token.location, t.token.style)
+      end
+      op_node = new_node("statement", "opK", op_token)
+      exp_token = Token.new(@TOKEN_TYPE[:integer], '1', 1, t.token.location, @TOKEN_STYLE[:integer])
+      exp_node = new_node("statement", "constK", exp_token)
+
+      assign_node << t
+      assign_node << op_node
+      op_node << id
+      op_node << exp_node
+
+      match(@token.type)
+      match(@TOKEN_TYPE[:semicolon])
+      return assign_node
     else
-      # Si es incremento o decremento debemos crear el sub-árbol correspondiente.
-      if @token.type == @TOKEN_TYPE[:increment]
-        @token.type = @TOKEN_TYPE[:assignation] # Se cambia el incremento por asignación.
-        @token.lexeme = ":="
-        aux = new_node('', Token.new(@TOKEN_TYPE[:addition], '+', @token.range,
-                                     @token.location, @TOKEN_STYLE[:addition]))
-      elsif @token.type == @TOKEN_TYPE[:decrement]
-        @token.type = @TOKEN_TYPE[:assignation] # Se cambia el incremento por asignación.
-        @token.lexeme = ":="
-        aux = new_node('', Token.new(@TOKEN_TYPE[:subtraction], '-', @token.range,
-                                     @token.location, @TOKEN_STYLE[:subtraction]))
-      end
-      if aux != nil
-        # Agregamos los hijos del sub-árbol.
-        aux << new_node('', Token.new(@TOKEN_TYPE[:identifier], t.token.lexeme, @token.range,
-                                      @token.location, @TOKEN_STYLE[:identifier]))
-        aux << new_node('', Token.new(@TOKEN_TYPE[:integer], '1', @token.range,
-                                      @token.location, @TOKEN_STYLE[:integer]))
-        # Modificamos el token actual para que se vuelva uno de asignación.
-        p.content = Token.new(@TOKEN_TYPE[:assign], ":=", @token.range, @token.location, @TOKEN_STYLE[:assign])
-      end
+      syntax_error("unexpected token")
+      @token = get_token
+      return nil
     end
-    if p != nil
-      p << t
-      t = p
+    p << t
+    t = p
+    if t != nil
+      aux = expression
       if aux != nil
         t << aux
       end
-    end
-    # Comparamos con asignación ya que si se tratase de un incremento o decremento, este se cambiará a uno de asignación.
-    match(@TOKEN_TYPE[:assign])
-    p = expression
-    if p != nil
-      t << p
     end
     match(@TOKEN_TYPE[:semicolon])
     t
@@ -283,7 +284,7 @@ module SyntaxRules
     if @token.type == @TOKEN_TYPE[:less_equal] or @token.type == @TOKEN_TYPE[:less]\
     or @token.type == @TOKEN_TYPE[:greater] or @token.type == @TOKEN_TYPE[:greater_equal]\
     or @token.type == @TOKEN_TYPE[:equal] or @token.type == @TOKEN_TYPE[:not_equal]
-      p = new_node("expression")
+      p = new_node("expression", "opK")
       if p != nil
         p << t
         t = p
@@ -299,7 +300,7 @@ module SyntaxRules
   def simple_expression
     t = term
     while @token.type == @TOKEN_TYPE[:addition] or @token.type == @TOKEN_TYPE[:subtraction]
-      p = new_node("expression")
+      p = new_node("expression", "opK")
       if p != nil
         p << t
         t = p
@@ -314,7 +315,7 @@ module SyntaxRules
     t = factor
     while @token.type == @TOKEN_TYPE[:multiplication] or @token.type == @TOKEN_TYPE[:division]\
     or @token.type == @TOKEN_TYPE[:module]
-      p = new_node("expression")
+      p = new_node("expression", "opK")
       if p != nil
         p << t
         t = p
@@ -329,13 +330,13 @@ module SyntaxRules
     t = nil
     case @token.type
       when @TOKEN_TYPE[:integer]
-        t = new_node("expression")
+        t = new_node("expression", "constK")
         match(@token.type)
       when @TOKEN_TYPE[:float]
-        t = new_node("expression")
+        t = new_node("expression", "constK")
         match(@token.type)
       when @TOKEN_TYPE[:identifier]
-        t = new_node("expression")
+        t = new_node("expression", "idK")
         match(@token.type)
       when @TOKEN_TYPE[:op_parenthesis]
         match(@token.type)

@@ -45,15 +45,15 @@ class SyntaxAnalyzer < TokenTypes
     if @token.type == expected
       @token = get_token
     else
-      syntax_error("Se esperaba: #{expected}.")
+      syntax_error("Se esperaba: #{expected}.\n")
     end
   end
 
   # Genera un nuevo nodo.
   private
-  def new_node(kind, token = @token)
+  def new_node(nodekind, kind, token = @token)
     @name += 1
-    Node.new(@name.to_s, kind, token)
+    Node.new(@name.to_s, nodekind, kind, token)
   end
 
   # Corre el análisis.

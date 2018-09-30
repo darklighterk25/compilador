@@ -3,15 +3,20 @@ include Tree
 
 class Node < TreeNode
 
-  attr_reader :kind, :token
-  attr_accessor :value
+  attr_reader :nodekind, :kind, :token 
+  attr_accessor :value, :type
 
-  def initialize(name, kind, token)
+  def initialize(name, nodekind, kind, token)
     super(name, token)
+    @nodekind = nodekind
     @kind = kind
     @string = ""
-    @value = 0
     @token = @content
+    if (kind.eql?("constK"))
+      @value = @token.lexeme.to_f
+    else
+      @value = 0
+    end
   end
 
   def print_tree(level = self.node_depth, max_depth = nil,
