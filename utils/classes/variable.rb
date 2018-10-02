@@ -1,7 +1,6 @@
 class Variable
 
-  attr_reader :location, :type
-  attr_accessor :lines, :value, :type
+  attr_accessor :lines, :location, :value, :type
 
   def initialize(location, line, value, type)
     @location, @value, @type = location, value, type

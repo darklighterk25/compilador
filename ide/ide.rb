@@ -109,13 +109,11 @@ class IDE < FXMainWindow
       lexical_frame.setBackColor(FXRGB(50, 50, 50))
       @lexical_table = FXTable.new(lexical_frame,:opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TABLE_READONLY|\
                                                           TABLE_NO_COLSELECT|TABLE_NO_ROWSELECT)
-      @lexical_table.setTableSize(0, 3)
-      @lexical_table.setColumnWidth(0, 249)
-      @lexical_table.setColumnWidth(1, 15)
-      @lexical_table.setColumnWidth(2, 15)
+      @lexical_table.setTableSize(0, 2)
+      @lexical_table.setColumnWidth(0, 239)
+      @lexical_table.setColumnWidth(1, 40)
       @lexical_table.setColumnText(0, "Lexema")
-      @lexical_table.setColumnText(1, 'F')
-      @lexical_table.setColumnText(2, 'C')
+      @lexical_table.setColumnText(1, "Línea")
       # Segunda pestaña (Sintáctico).
       syntax_tab = FXTabItem.new(analysis_tabs, "Sintáctico",:padLeft => 36, :padRight => 36)
       syntax_tab.setBackColor(FXRGB(50, 50, 50))
@@ -124,8 +122,8 @@ class IDE < FXMainWindow
       syntax_frame.setBackColor(FXRGB(50, 50, 50))
       @syntax_tree_list = FXTreeList.new(syntax_frame, :opts => TREELIST_NORMAL|TREELIST_SHOWS_LINES|\
                                                                 TREELIST_SHOWS_BOXES|TREELIST_ROOT_BOXES|LAYOUT_FILL)
-      @syntax_tree_list.setBackColor(FXRGB(50, 50, 50))
-      @syntax_tree_list.setTextColor(FXRGB(200, 200, 200))
+      @syntax_tree_list.setBackColor(FXRGB(200, 200, 200))
+      @syntax_tree_list.setTextColor(FXRGB(0, 0, 0))
       # Tercer pestaña (Semántico).
       semantic_tab = FXTabItem.new(analysis_tabs, "Semántico", :padLeft => 36, :padRight => 36)
       semantic_tab.setBackColor(FXRGB(50, 50, 50))
@@ -134,8 +132,8 @@ class IDE < FXMainWindow
       semantic_frame.setBackColor(FXRGB(50, 50, 50))
       @semantic_tree_list = FXTreeList.new(semantic_frame, :opts => TREELIST_NORMAL|TREELIST_SHOWS_LINES|\
                                                                 TREELIST_SHOWS_BOXES|TREELIST_ROOT_BOXES|LAYOUT_FILL)
-      @semantic_tree_list.setBackColor(FXRGB(50, 50, 50))
-      @semantic_tree_list.setTextColor(FXRGB(200, 200, 200))
+      @semantic_tree_list.setBackColor(FXRGB(200, 200, 200))
+      @semantic_tree_list.setTextColor(FXRGB(0, 0, 0))
     end
     # Bloque derecho.
     FXSpring.new(contents, LAYOUT_FILL_X|LAYOUT_FILL_Y, :relw => 50, :padding => 0) do | spring |
@@ -172,8 +170,8 @@ class IDE < FXMainWindow
           results_frame = FXHorizontalFrame.new(output_tabs)
           results_frame.setBackColor(FXRGB(50, 50, 50))
           @results_text = FXText.new(results_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
-          @results_text.setBackColor(FXRGB(50, 50, 50))
-          @results_text.setTextColor(FXRGB(0, 255, 0))
+          @results_text.setBackColor(FXRGB(200, 200, 200))
+          @results_text.setTextColor(FXRGB(0, 0, 0))
           @results_text.setCursorColor(FXRGB(50, 50, 50))
           # Segunda pestaña (Errores).
           errors_tab = FXTabItem.new(output_tabs, "Errores", :padLeft => 60, :padRight => 60)
@@ -182,8 +180,8 @@ class IDE < FXMainWindow
           errors_frame = FXHorizontalFrame.new(output_tabs)
           errors_frame.setBackColor(FXRGB(50, 50, 50))
           @errors_text = FXText.new(errors_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
-          @errors_text.setBackColor(FXRGB(50, 50, 50))
-          @errors_text.setTextColor(FXRGB(255, 0, 0))
+          @errors_text.setBackColor(FXRGB(200, 200, 200))
+          @errors_text.setTextColor(FXRGB(0, 0, 0))
           @errors_text.setCursorColor(FXRGB(50, 50, 50))
           # Tercera pestaña (Tabla Hash).
           hash_tab = FXTabItem.new(output_tabs, "Tabla Hash", :padLeft => 60, :padRight => 60)
@@ -193,17 +191,15 @@ class IDE < FXMainWindow
           hash_frame.setBackColor(FXRGB(50, 50, 50))
           @hash_table = FXTable.new(hash_frame,:opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TABLE_READONLY|\
                                                             TABLE_NO_COLSELECT|TABLE_NO_ROWSELECT)
-          @hash_table.setTableSize(0, 5)
-          @hash_table.setColumnWidth(0, 200)
-          @hash_table.setColumnWidth(1, 200)
+          @hash_table.setTableSize(0, 4)
+          @hash_table.setColumnWidth(0, 70)
+          @hash_table.setColumnWidth(1, 400)
           @hash_table.setColumnWidth(2, 200)
-          @hash_table.setColumnWidth(3, 100)
-          @hash_table.setColumnWidth(4, 100)
-          @hash_table.setColumnText(0, "Nombre de la variable")
-          @hash_table.setColumnText(1, "Localidad")
-          @hash_table.setColumnText(2, "Línea")
-          @hash_table.setColumnText(3, "Valor")
-          @hash_table.setColumnText(4, "Tipo")
+          @hash_table.setColumnWidth(3, 50)
+          @hash_table.setColumnText(0, "Localidad")
+          @hash_table.setColumnText(1, "Línea")
+          @hash_table.setColumnText(2, "Valor")
+          @hash_table.setColumnText(3, "Tipo")
           # Cuarta pestaña (Código intermedio).
           intermediate_tab = FXTabItem.new(output_tabs, "Código Intermedio", :padLeft => 40, :padRight => 40)
           intermediate_tab.setBackColor(FXRGB(50, 50, 50))
@@ -211,8 +207,8 @@ class IDE < FXMainWindow
           intermediate_frame = FXHorizontalFrame.new(output_tabs)
           intermediate_frame.setBackColor(FXRGB(50, 50, 50))
           @intermediate_text = FXText.new(intermediate_frame, :opts => LAYOUT_FILL_X|LAYOUT_FILL_Y|TEXT_READONLY)
-          @intermediate_text.setBackColor(FXRGB(50, 50, 50))
-          @intermediate_text.setTextColor(FXRGB(200, 200, 200))
+          @intermediate_text.setBackColor(FXRGB(200, 200, 200))
+          @intermediate_text.setTextColor(FXRGB(0, 0, 0))
         end
     end
   end

@@ -49,29 +49,31 @@ class SemanticAnalyzer < TokenTypes
   # Genera la tabla para el entorno gráfico.
   private
   def generate_table
-    @table.setTableSize(@hash_table.length, 5)
-    @table.setColumnWidth(0, 50)
-    @table.setColumnWidth(1, 50)
-    @table.setColumnWidth(2, 50)
-    @table.setColumnWidth(3, 50)
-    @table.setColumnWidth(4, 50)
-    @table.setColumnText(0, "Nombre de la variable")
-    @table.setColumnText(1, "Localidad")
-    @table.setColumnText(2, "Línea")
-    @table.setColumnText(3, "Valor")
-    @table.setColumnText(4, "Tipo")
+    @table.setTableSize(@hash_table.length, 4)
     @hash_table.each_with_index do | (key, variable), index | # Iteramos el hash para fijar valores en la tabla.
-      @table.setItemText(index, 0, key.to_s) # Nombre de la variable.
-      @table.setItemText(index, 1, variable.location.to_s) # Localidad.
+      @table.setRowText(index, key.to_s) # Nombre de la variable.
+      @table.setItemText(index, 0, variable.location.to_s) # Localidad.
       lines = ""
       variable.lines.each do | line | # Iteramos todas las lìneas.
         lines += " #{line}," # Y concatenamos.
       end
       lines.chop! # Remueve el último caracter (que siempre es una coma).
-      @table.setItemText(index, 2, lines.to_s) # Fijamos el valor concatenado.
-      @table.setItemText(index, 3, variable.value.to_s) # Valor.
-      @table.setItemText(index, 4, variable.type.to_s) # Tipo.
+      @table.setItemText(index, 1, lines.to_s) # Fijamos el valor conscatenado.
+      @table.setItemText(index, 2, variable.value.to_s) # Valor.
+      @table.setItemText(index, 3, variable.type.to_s) # Tipo.
+      @table.setItemJustify(index, 0, FXTableItem::CENTER_X)
+      @table.setItemJustify(index, 1, FXTableItem::LEFT)
+      @table.setItemJustify(index, 2, FXTableItem::LEFT)
+      @table.setItemJustify(index, 3, FXTableItem::LEFT)
     end
+    @table.setColumnWidth(0, 70)
+    @table.setColumnWidth(1, 400)
+    @table.setColumnWidth(2, 200)
+    @table.setColumnWidth(3, 50)
+    @table.setColumnText(0, "Localidad")
+    @table.setColumnText(1, "Línea")
+    @table.setColumnText(2, "Valor")
+    @table.setColumnText(3, "Tipo")
   end
 
   # Genera el árbol desplegable para el entorno gráfico.

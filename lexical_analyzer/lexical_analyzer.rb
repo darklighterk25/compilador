@@ -26,8 +26,8 @@ class LexicalAnalyzer < TokenTypes
 
   # El método recibe un string para hacer el análisis léxico y devuelve los tokens en un array.
   def run(string)
-    @column = '-' # Inicializa las el conteo de columnas.
-    @row = '-' # Inicializa las el conteo de filas.
+    @column = 1 # Inicializa las el conteo de columnas.
+    @row = 1 # Inicializa las el conteo de filas.
     @iterator = -1 # Se reinicia el iterador.
     @tokens = [] # Se limpian el array ya que solo existirá una instancia.
     identifier = '' # Guarda el string del identificador.
@@ -262,6 +262,8 @@ class LexicalAnalyzer < TokenTypes
               when '.'
                 state = @STATE_TYPE[:dot]
                 token = @TOKEN_TYPE[:error]
+              when "\n"
+                @row += 1
               else
                 unless character == ' ' or character.include? "\n" or character.include? "\t" # Caracter vacío.
                   state = @STATE_TYPE[:start]
@@ -307,7 +309,6 @@ class LexicalAnalyzer < TokenTypes
         @tokens.push( Token.new(token, lexeme, {start: @iterator - lexeme.length, end: @iterator},
                                 {row: @row, column: @column}, style) )
         character = unget_char(string)
-        @column = '-'
         lexeme = ''
         state = @STATE_TYPE[:start]
         token = @TOKEN_TYPE[:eof]
@@ -327,21 +328,18 @@ class LexicalAnalyzer < TokenTypes
   # Genera la tabla para el entorno gráfico.
   private
   def generate_table
-    @table.setTableSize(@tokens.length, 3)
+    @table.setTableSize(@tokens.length, 2)
     @tokens.each_with_index { | token, index |
       @table.setRowText(index, token.type)
       @table.setItemText(index, 0, token.lexeme)
       @table.setItemText(index, 1, token.location[:row].to_s)
-      @table.setItemText(index, 2, token.location[:column].to_s)
-      @table.setItemJustify(index, 1, FXTableItem::CENTER_X|FXTableItem::CENTER_Y)
-      @table.setItemJustify(index, 2, FXTableItem::CENTER_X|FXTableItem::CENTER_Y)
+      @table.setItemJustify(index, 0, FXTableItem::LEFT)
+      @table.setItemJustify(index, 1, FXTableItem::CENTER_X)
     }
-    @table.setColumnWidth(0, 249)
-    @table.setColumnWidth(1, 15)
-    @table.setColumnWidth(2, 15)
+    @table.setColumnWidth(0, 239)
+    @table.setColumnWidth(1, 40)
     @table.setColumnText(0, "Lexema")
-    @table.setColumnText(1, 'F')
-    @table.setColumnText(2, 'C')
+    @table.setColumnText(1, "Línea")
   end
 
   # El método recibe un string y nos da el caracter anterior.
