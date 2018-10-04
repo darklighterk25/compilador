@@ -120,7 +120,7 @@ module SemanticRules
       else
         case identifier.type
         when "integer"
-          if((expression.value % 1) != 0)
+          if(!(expression.value.is_a? Integer))
             msj = "No se pueden asignar valores no enteros a la variable #{identifier.token.lexeme}. Linea #{identifier.token.location[:row]}\n"
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
@@ -129,7 +129,7 @@ module SemanticRules
             set_value(identifier.token.lexeme, identifier.value)
           end
         when "float"
-          if((expression.value % 1) == 0)
+          if(!(expression.value.is_a? Float))
             msj = "No se pueden asignar valores no flotantes a la variable #{identifier.token.lexeme}. Linea #{identifier.token.location[:row]}\n"
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)

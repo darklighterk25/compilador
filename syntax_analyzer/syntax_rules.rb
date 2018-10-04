@@ -331,9 +331,11 @@ module SyntaxRules
     case @token.type
       when @TOKEN_TYPE[:integer]
         t = new_node("expression", "constK")
+        t.value = t.token.lexeme.to_i
         match(@token.type)
       when @TOKEN_TYPE[:float]
         t = new_node("expression", "constK")
+        t.value = t.token.lexeme.to_f
         match(@token.type)
       when @TOKEN_TYPE[:identifier]
         t = new_node("expression", "idK")
