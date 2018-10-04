@@ -23,8 +23,7 @@ class SemanticAnalyzer < TokenTypes
   # Inicia el análisis semántico
   private
   def run
-    build_symtab # Construye e inicializa la tabla de símbolos
-    check_type(@syntax_tree) # Establece el tipo de dato de las variables
+    build_symtab(@syntax_tree) # Construye e inicializa la tabla de símbolos
     evaluate_tree(@syntax_tree) # Recorrido en orden del arbol para evaluar los nodos y detectar errores
     generate_tree(@syntax_tree, nil) # Genera el árbol gráfico.
     generate_table # Genera la tabla para el entorno gráfico.
@@ -32,18 +31,11 @@ class SemanticAnalyzer < TokenTypes
 
   # Construye la tabla de simbolos mediante un recorrido en pre-orden
   private
-  def build_symtab
-    pre_order(@syntax_tree)
-  end
-
-  # Recorrido en pre-orden para el arbol semantico
-  private
-  def pre_order(t)
-    insert_node(t)
-    children = t.children
+  def build_symtab(root)
+    children = root.children
     children.each do |child|
-      pre_order(child)
-    end
+      insert_node(child)
+    end    
   end
 
   # Genera la tabla para el entorno gráfico.
@@ -91,13 +83,6 @@ class SemanticAnalyzer < TokenTypes
     end
   end
 
-  # Cambia el tipo de dato de una variable
-  private
-  def set_type(lexeme, type)
-    key = lexeme.to_sym
-    @hash_table[key].type = type
-  end
-
   # Regresa el tipo de dato de una variable
   private
   def get_type(lexeme)
@@ -129,10 +114,9 @@ class SemanticAnalyzer < TokenTypes
 
   # Actualiza los valores de una variable ya existente en la tabla hash.
   private
-  def update_variable(lexeme, line, value)
+  def update_variable(lexeme, line)
     key = lexeme.to_sym
     @hash_table[key].lines.push(line)
-    @hash_table[key].value = value
   end
 
   # Verifica si una variable ya existe en la tabla hash.
@@ -148,25 +132,19 @@ class SemanticAnalyzer < TokenTypes
     @errors +=  msj
   end
 
-  # Inserta los identificadores almacenados en t dentro de la tabla de simbolos
+  # Inserta los identificadores declarados en la tabla de simbolos
   private
   def insert_node(t)
     case t.nodekind
-    when "identifier"
-      if (variable_exists?(t.token.lexeme))
-        msj = "La variable #{t.token.lexeme} ya fue declarada con anterioridad\n"
-        error(msj)
-      else
-        insert_variable(t.token.lexeme, Variable.new(@location, t.token.location[:row], t.value, t.type))
-      end
-    else
-      case t.kind
-      when "idK"
-        if (variable_exists?(t.token.lexeme))
-          update_variable(t.token.lexeme, t.token.location[:row], t.value)
-        else
-          msj = "La variable #{t.token.lexeme} no existe\n"
+    when "declaration"
+      identifiers = t.children
+      identifiers.each do |id|
+        if (variable_exists?(id.token.lexeme))
+          msj = "[ERROR] '#{id.token.lexeme}' variable was already declared. Line: #{id.token.location[:row]}\n"
           error(msj)
+        else
+          new_id = Variable.new(@location, id.token.location[:row], 0, t.token.lexeme)
+          insert_variable(id.token.lexeme, new_id)
         end
       end
     end

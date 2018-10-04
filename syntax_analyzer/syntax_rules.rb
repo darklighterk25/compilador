@@ -53,7 +53,7 @@ module SyntaxRules
     t = nil
     if @token.type == @TOKEN_TYPE[:rw_integer] or @token.type == @TOKEN_TYPE[:rw_float]\
     or @token.type == @TOKEN_TYPE[:rw_bool]
-      t = new_node("declaration", @token.type)
+      t = new_node("declaration", @token.lexeme)
       match(@token.type)
       aux = variable_list
       aux.each do | x |

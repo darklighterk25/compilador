@@ -1,40 +1,26 @@
 module SemanticRules
 
-  # Establece el tipo de dato de las variables
-  def check_type(t)
-    children = t.children
-    children.each do |child|
-      if (t.nodekind.eql?("declaration"))
-        child.type = t.token.lexeme
-        set_type(child.token.lexeme, child.type)
-      end
-      check_type(child)
-    end
-  end
-
-  # Recorrido en post-orden para la evaluación del arbol sintactico
+  # Evalua las sentencias que son hijos directos del main o que estan en un bloque de sentencias
   def evaluate_tree(t)
     children = t.children
     children.each do |child|
-      if (child.kind.eql?("opK"))
-        puts "Entré en opK"
-        post_eval(child)
-      elsif (child.kind.eql?("assignK"))
+      case child.kind
+      when "assignK"
         assign_eval(child)
-      elsif (child.kind.eql?("ifK"))
+      when "ifK"
         boolean_eval(child, 0)
         for i in 1..(child.children.length - 1) do
           evaluate_tree(child.children[i])
         end
-      elsif (child.kind.eql?("whileK"))
+      when "whileK"
         boolean_eval(child, 0)
         evaluate_tree(child.last_child)
-      elsif (child.kind.eql?("doK"))
+      when "doK"
         evaluate_tree(child.first_child)
         boolean_eval(child, 1)
-      elsif (child.kind.eql?("readK"))
+      when "readK"
         read_eval(child)
-      elsif (child.kind.eql?("writeK"))
+      when "writeK"
         write_eval(child)
       else
         evaluate_tree(child)
@@ -42,65 +28,95 @@ module SemanticRules
     end
   end
 
+  # Se usa cuando una expresión solo consta de un identificador
+  def just_id(t)
+    if(t.kind.eql?("idK"))
+      if(variable_exists?(t.token.lexeme))
+        t.value = get_value(t.token.lexeme)
+        update_variable(t.token.lexeme, t.token.location[:row])
+      else
+        t.value = "error"
+        msj = "[ERROR] '#{identifier.token.lexeme}' variable is not declared. Line: #{identifier.token.location[:row]}\n"
+        error(msj)
+      end
+    else
+      post_eval(t)
+    end
+  end
+
   # Establece el valor de las expresiones y detecta errores como divisiones entre 0
   def post_eval(t)
     if(t.kind.eql?("opK"))
-      post_eval(t.first_child)
-      post_eval(t.last_child)
-      if(t.first_child.kind.eql?("idK"))
-        if(variable_exists?(t.first_child.token.lexeme))
-          t.first_child.value = get_value(t.first_child.token.lexeme)
+      left_operand = t.first_child
+      right_operand = t.last_child
+      post_eval(left_operand)
+      post_eval(right_operand)
+      if(left_operand.kind.eql?("idK"))
+        if(variable_exists?(left_operand.token.lexeme))
+          left_operand.value = get_value(left_operand.token.lexeme)
+          update_variable(left_operand.token.lexeme, left_operand.token.location[:row])
         else
-          t.first_child.value = "error"
+          left_operand.value = "error"
+          msj = "[ERROR] '#{left_operand.token.lexeme}' variable is not declared. Line: #{left_operand.token.location[:row]}\n"
+          error(msj)
         end
       end
-      if(t.last_child.kind.eql?("idK"))
-        if(variable_exists?(t.last_child.token.lexeme))
-          t.last_child.value = get_value(t.last_child.token.lexeme)
+      if(right_operand.kind.eql?("idK"))
+        if(variable_exists?(right_operand.token.lexeme))
+          right_operand.value = get_value(right_operand.token.lexeme)
+          update_variable(right_operand.token.lexeme, right_operand.token.location[:row])
         else
-          t.last_child.value = "error"
+          right_operand.value = "error"
+          msj = "[ERROR] '#{right_operand.token.lexeme}' variable is not declared. Line: #{right_operand.token.location[:row]}\n"
+          error(msj)
         end
       end
-      if(t.first_child.value.eql?("error") || t.last_child.value.eql?("error"))
+      if(left_operand.value.eql?("error") || right_operand.value.eql?("error"))
         t.value = "error"
       else
         case t.token.lexeme
         when "<="
-          t.value = t.first_child.value <= t.last_child.value
+          t.value = left_operand.value <= right_operand.value
         when "<"
-          t.value = t.first_child.value < t.last_child.value
+          t.value = left_operand.value < right_operand.value
         when ">"
-          t.value = t.first_child.value > t.last_child.value
+          t.value = left_operand.value > right_operand.value
         when ">="
-          t.value = t.first_child.value >= t.last_child.value
+          t.value = left_operand.value >= right_operand.value
         when "!="
-          t.value = t.first_child.value != t.last_child.value
+          t.value = left_operand.value != right_operand.value
         when "=="
-          t.value = t.first_child.value == t.last_child.value
+          t.value = left_operand.value == right_operand.value
         when "+"
-          t.value = t.first_child.value + t.last_child.value
+          t.value = left_operand.value + right_operand.value
         when "-"
-          t.value = t.first_child.value - t.last_child.value
+          t.value = left_operand.value - right_operand.value
         when "*"
-          t.value = t.first_child.value * t.last_child.value
+          t.value = left_operand.value * right_operand.value
         when "/"
-          if t.last_child.value != 0
-            t.value = t.first_child.value / t.last_child.value
+          if right_operand.value != 0
+            t.value = left_operand.value / right_operand.value
           else
             t.value = "error"
-            msj = "Error, división entre 0 en la línea #{t.last_child.token.location[:row]}\n"
+            msj = "[WARNING] Division by zero. Line: #{right_operand.token.location[:row]}\n"
             error(msj)
           end
         when "%"
-          if t.last_child.value != 0
-            t.value = t.first_child.value % t.last_child.value
+          if (left_operand.value.is_a?(Integer) && right_operand.value.is_a?(Integer))
+            if (right_operand.value != 0)
+              t.value = left_operand.value % right_operand.value
+            else
+              t.value = "error"
+              msj = "[WARNING] Division by zero. Line: #{right_operand.token.location[:row]}\n"
+              error(msj)
+            end
           else
             t.value = "error"
-            msj = "Error, modulo entre 0 en la linea #{t.last_child.token.location[:row]}\n"
+            msj = "[ERROR] Invalid operands, only integer operands are allowed for the binary operator '%'. Line: #{t.token.location[:row]}\n"
             error(msj)
           end
         else
-          msj = "El tipo de operador (#{t.token.lexeme}) no existe!!\n"
+          msj = "[BUG] Operator type '#{t.token.lexeme}' does not exist. Line #{t.token.location[:row]}\n"
           error(msj)
         end
       end
@@ -111,17 +127,18 @@ module SemanticRules
   def assign_eval(t)
     identifier = t.first_child
     expression = t.last_child
-    post_eval(expression)
+    just_id(expression)
     if(variable_exists?(identifier.token.lexeme))
+      update_variable(identifier.token.lexeme, identifier.token.location[:row])
       identifier.type = get_type(identifier.token.lexeme)
       if(expression.value.eql?("error"))
-        msj = "El valor de la asignación en la línea #{expression.token.location[:row]} es erroneo\n"
+        msj = "[ERROR] Expression value in the assignment is invalid. Line: #{t.token.location[:row]}\n"
         error(msj)
       else
         case identifier.type
         when "integer"
-          if(!(expression.value.is_a? Integer))
-            msj = "No se pueden asignar valores no enteros a la variable #{identifier.token.lexeme}. Linea #{identifier.token.location[:row]}\n"
+          if(!(expression.value.is_a?(Integer)))
+            msj = "[ERROR] Cannot assign non-integer values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
           else
@@ -129,8 +146,8 @@ module SemanticRules
             set_value(identifier.token.lexeme, identifier.value)
           end
         when "float"
-          if(!(expression.value.is_a? Float))
-            msj = "No se pueden asignar valores no flotantes a la variable #{identifier.token.lexeme}. Linea #{identifier.token.location[:row]}\n"
+          if(!(expression.value.is_a?(Float)))
+            msj = "[ERROR] Cannot assign non-float values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
           else
@@ -139,7 +156,7 @@ module SemanticRules
           end
         when "bool"
           if(expression.value != true && expression.value != false)
-            msj = "No se pueden asignar valores no booleanos a la variable #{identifier.token.lexeme}. Línea #{identifier.token.location[:row]}\n"
+            msj = "[ERROR] Cannot assign non-boolean values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
           else
@@ -147,12 +164,12 @@ module SemanticRules
             set_value(identifier.token.lexeme, identifier.value)
           end
         else
-          msj = "El tipo de dato de la variable #{identifier.token.lexeme} es desconocido !!\n"
+          msj = "[BUG] Data type of '#{identifier.token.lexeme}' variable is unknown. Line: #{identifier.token.location[:row]}\n"
           error(msj)
         end
       end
     else
-      msj = "No se puede asignar valor a la variable #{identifier.token.lexeme} ya que no existe. Linea #{t.token.location[:row]}\n"
+      msj = "[ERROR] Unable to assign value to '#{identifier.token.lexeme}' variable since it is not declared. Line: #{identifier.token.location[:row]}\n"
       error(msj)
       identifier.value = "error"
     end
@@ -161,9 +178,9 @@ module SemanticRules
   # Establece y detecta errores en las expresiones de sentencias if, while y do
   def boolean_eval(t, child_number)
     expression = t.children[child_number]
-    post_eval(expression)
+    just_id(expression)
     if(expression.value != true && expression.value != false)
-      msj = "Error, la expresion de la sentencia if de la linea #{expression.token.location[:row]} no es booleana\n"
+      msj = "[ERROR] If expression is not boolean. Line: #{expression.token.location[:row]}\n"
       error(msj)
     end
   end
@@ -172,15 +189,18 @@ module SemanticRules
   def read_eval(t)
     identifier = t.first_child
     if(!(variable_exists?(identifier.token.lexeme)))
-      msj = "Error, la variable #{identifier.token.lexeme} no esta declarada y no se puede leer\n"
+      identifier.value = "error"
+      msj = "[ERROR] Unable to read '#{identifier.token.lexeme}' variable since it is not declared. Line: #{identifier.token.location[:row]}\n"
       error(msj)
+    else
+      update_variable(identifier.token.lexeme, identifier.token.location[:row])
     end
   end
 
   # Establece el valor de las expresiones en sentencias write
   def write_eval(t)
     expression = t.last_child
-    post_eval(expression)
+    just_id(expression)
   end
 
 end
