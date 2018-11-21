@@ -1,4 +1,5 @@
 require 'fox16'
+require_relative '../intermediate_code/intermediate_code'
 require_relative '../lexical_analyzer/lexical_analyzer'
 require_relative '../semantic_analyzer/semantic_analyzer'
 require_relative '../syntax_analyzer/syntax_analyzer'
@@ -286,6 +287,14 @@ class IDE < FXMainWindow
     line.setTextColor(FXRGB(255, 255, 255))
   end
 
+  # Generación de código intermedio.
+  private
+  def intermediate_code
+    if (@errors_text.text.length == 0) # Condición para comprobar que no hubo errores semánticos.
+      @intermediate_code = IntermediateCode.new(@intermediate_text, @results_text, @semantic_analyzer.syntax_tree)
+    end
+  end
+
   # Genera el array de los estilos de texto.
   private
   def init_text_styles
@@ -384,6 +393,7 @@ class IDE < FXMainWindow
     if (@errors_text.text.length == 0) # Condición para comprobar que no hubo errores sintácticos.
       @semantic_analyzer = SemanticAnalyzer.new(@syntax_analyzer.syntax_tree, @semantic_tree_list, @hash_table)
       @errors_text.appendText(@semantic_analyzer.errors)
+      intermediate_code
     else
       @errors_text.text += "\n\nNo se pudo iniciar el análisis semántico ya que existen errores en etapas previas."
     end

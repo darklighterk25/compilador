@@ -7,7 +7,7 @@ require_relative '../utils/classes/variable'
 class SemanticAnalyzer < TokenTypes
 
   include SemanticRules
-  attr_reader :errors, :hash_table, :tree_list
+  attr_reader :errors, :hash_table, :syntax_tree, :tree_list
 
   def initialize(syntax_tree, tree_list, table)
     super()
@@ -72,7 +72,7 @@ class SemanticAnalyzer < TokenTypes
   private
   def generate_tree(node, parent)
     content = "#{node.token.lexeme}"
-    if(node.kind.eql?("opK") || node.kind.eql?("idK"))
+    if node.kind.eql?("opK") || node.kind.eql?("idK")
       content += " (#{node.value})"
     end
     aux = @tree_list.appendItem(parent, content) # El árbol semántico imprime el valor.
@@ -139,7 +139,7 @@ class SemanticAnalyzer < TokenTypes
     when "declaration"
       identifiers = t.children
       identifiers.each do |id|
-        if (variable_exists?(id.token.lexeme))
+        if variable_exists?(id.token.lexeme)
           msj = "[ERROR] '#{id.token.lexeme}' variable was already declared. Line: #{id.token.location[:row]}\n"
           error(msj)
         else

@@ -30,8 +30,8 @@ module SemanticRules
 
   # Se usa cuando una expresión solo consta de un identificador
   def just_id(t)
-    if(t.kind.eql?("idK"))
-      if(variable_exists?(t.token.lexeme))
+    if t.kind.eql?("idK")
+      if variable_exists?(t.token.lexeme)
         t.value = get_value(t.token.lexeme)
         update_variable(t.token.lexeme, t.token.location[:row])
       else
@@ -46,13 +46,13 @@ module SemanticRules
 
   # Establece el valor de las expresiones y detecta errores como divisiones entre 0
   def post_eval(t)
-    if(t.kind.eql?("opK"))
+    if t.kind.eql?("opK")
       left_operand = t.first_child
       right_operand = t.last_child
       post_eval(left_operand)
       post_eval(right_operand)
-      if(left_operand.kind.eql?("idK"))
-        if(variable_exists?(left_operand.token.lexeme))
+      if left_operand.kind.eql?("idK")
+        if variable_exists?(left_operand.token.lexeme)
           left_operand.value = get_value(left_operand.token.lexeme)
           update_variable(left_operand.token.lexeme, left_operand.token.location[:row])
         else
@@ -61,8 +61,8 @@ module SemanticRules
           error(msj)
         end
       end
-      if(right_operand.kind.eql?("idK"))
-        if(variable_exists?(right_operand.token.lexeme))
+      if right_operand.kind.eql?("idK")
+        if variable_exists?(right_operand.token.lexeme)
           right_operand.value = get_value(right_operand.token.lexeme)
           update_variable(right_operand.token.lexeme, right_operand.token.location[:row])
         else
@@ -71,7 +71,7 @@ module SemanticRules
           error(msj)
         end
       end
-      if(left_operand.value.eql?("error") || right_operand.value.eql?("error"))
+      if left_operand.value.eql?("error") || right_operand.value.eql?("error")
         t.value = "error"
       else
         case t.token.lexeme
@@ -102,8 +102,8 @@ module SemanticRules
             error(msj)
           end
         when "%"
-          if (left_operand.value.is_a?(Integer) && right_operand.value.is_a?(Integer))
-            if (right_operand.value != 0)
+          if left_operand.value.is_a?(Integer) && right_operand.value.is_a?(Integer)
+            if right_operand.value != 0
               t.value = left_operand.value % right_operand.value
             else
               t.value = "error"
@@ -128,16 +128,16 @@ module SemanticRules
     identifier = t.first_child
     expression = t.last_child
     just_id(expression)
-    if(variable_exists?(identifier.token.lexeme))
+    if variable_exists?(identifier.token.lexeme)
       update_variable(identifier.token.lexeme, identifier.token.location[:row])
       identifier.type = get_type(identifier.token.lexeme)
-      if(expression.value.eql?("error"))
+      if expression.value.eql?("error")
         msj = "[ERROR] Expression value in the assignment is invalid. Line: #{t.token.location[:row]}\n"
         error(msj)
       else
         case identifier.type
         when "integer"
-          if(!(expression.value.is_a?(Integer)))
+          if !expression.value.is_a?(Integer)
             msj = "[ERROR] Cannot assign non-integer values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
@@ -146,7 +146,7 @@ module SemanticRules
             set_value(identifier.token.lexeme, identifier.value)
           end
         when "float"
-          if(!(expression.value.is_a?(Float)))
+          if !(expression.value.is_a?(Float))
             msj = "[ERROR] Cannot assign non-float values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
@@ -155,7 +155,7 @@ module SemanticRules
             set_value(identifier.token.lexeme, identifier.value)
           end
         when "bool"
-          if(expression.value != true && expression.value != false)
+          if expression.value != true && expression.value != false
             msj = "[ERROR] Cannot assign non-boolean values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
@@ -179,7 +179,7 @@ module SemanticRules
   def boolean_eval(t, child_number)
     expression = t.children[child_number]
     just_id(expression)
-    if(expression.value != true && expression.value != false)
+    if expression.value != true && expression.value != false
       msj = "[ERROR] If expression is not boolean. Line: #{expression.token.location[:row]}\n"
       error(msj)
     end
@@ -188,7 +188,7 @@ module SemanticRules
   # Detecta errores en sentencias read
   def read_eval(t)
     identifier = t.first_child
-    if(!(variable_exists?(identifier.token.lexeme)))
+    if !variable_exists?(identifier.token.lexeme)
       identifier.value = "error"
       msj = "[ERROR] Unable to read '#{identifier.token.lexeme}' variable since it is not declared. Line: #{identifier.token.location[:row]}\n"
       error(msj)
