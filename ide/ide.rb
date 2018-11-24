@@ -290,8 +290,9 @@ class IDE < FXMainWindow
   # Generación de código intermedio.
   private
   def intermediate_code
-    if (@errors_text.text.length == 0) # Condición para comprobar que no hubo errores semánticos.
-      @intermediate_code = IntermediateCode.new(@intermediate_text, @results_text, @semantic_analyzer.syntax_tree)
+    if (@errors_text.text.eql?("Errores semánticos: \n")) # Condición para comprobar que no hubo errores semánticos.
+      @errors_text.text = ""
+      @intermediate_code = IntermediateCode.new(@intermediate_text, @results_text, @semantic_analyzer.syntax_tree, @semantic_analyzer.hash_table)
     end
   end
 

@@ -242,17 +242,17 @@ module SyntaxRules
       match(@TOKEN_TYPE[:assign])
     elsif @token.type == @TOKEN_TYPE[:increment] || @token.type == @TOKEN_TYPE[:decrement]
 
-      id = new_node("statement", "idK", t.token)
+      id = new_node("expression", "idK", t.token)
       assign_token = Token.new(@TOKEN_TYPE[:assign], ":=", 2, t.token.location, t.token.style)
       assign_node = new_node("statement", "assignK", assign_token)
       if (@token.type == @TOKEN_TYPE[:increment])
         op_token = Token.new(@TOKEN_TYPE[:addition], "+", 1, t.token.location, t.token.style)
       else
-        op_token = Token.new(@TOKEN_TYPE[:subtraction], "+", 1, t.token.location, t.token.style)
+        op_token = Token.new(@TOKEN_TYPE[:subtraction], "-", 1, t.token.location, t.token.style)
       end
-      op_node = new_node("statement", "opK", op_token)
+      op_node = new_node("expression", "opK", op_token)
       exp_token = Token.new(@TOKEN_TYPE[:integer], '1', 1, t.token.location, @TOKEN_STYLE[:integer])
-      exp_node = new_node("statement", "constK", exp_token)
+      exp_node = new_node("expression", "constK", exp_token)
 
       assign_node << t
       assign_node << op_node
