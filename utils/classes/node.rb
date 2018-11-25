@@ -12,11 +12,7 @@ class Node < TreeNode
     @kind = kind
     @string = ""
     @token = @content
-    if (kind.eql?("constK"))
-      @value = @token.lexeme.to_f
-    else
-      @value = 0
-    end
+    @value = 0
   end
 
   def print_tree(level = self.node_depth, max_depth = nil,
