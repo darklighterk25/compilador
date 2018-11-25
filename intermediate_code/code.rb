@@ -1,5 +1,7 @@
 class Code
 
+  attr_reader :ac, :ac1, :gp, :pc, :mp
+
 	def initialize
 		@emit_loc = 0
 		@high_emit_loc = 0
@@ -20,7 +22,7 @@ class Code
 	end
 
 	def emit_rm(op, r, d, s, c)
-		@file += "#{@emit_loc}: #{op} #{r} #{d} #{s}"
+		@file += "#{@emit_loc}: #{op} #{r} #{d} #{s}\n"
 		@emit_loc += 1
 		if @high_emit_loc < @emit_loc
 			@high_emit_loc =  @emit_loc
@@ -61,4 +63,7 @@ class Code
 		out_file.close
 	end
 
+  def emit_comment(comment)
+		puts comment
+	end
 end

@@ -12,17 +12,8 @@ class IntermediateCode
     @hash_table = hash_table
     @break = false
     @loc_break = 0
-    run
     code_gen(semantic_tree)
-
-    @b
-    @ac
-    @pc
-  end
-
-  def run
-    @intermediate_code.appendText("")
-    @output.appendText("")
+    @code.write_code
   end
 
   private
@@ -86,15 +77,20 @@ class IntermediateCode
       p3 = t.children[2]
       c_gen(p1)
       saved_loc1 = @code.emit_skip(1)
-      @code.emit_skip(1)
       @code.emit_comment("if: jump to else belongs here")
       c_gen(p2)
       saved_loc2 = @code.emit_skip(1)
       @code.emit_comment("if: jump to end belongs here")
       current_loc = @code.emit_skip(0)
-      @code.emit_backup(saved_loc2)
-      @code.emit_rm_abs('lda', @pc, current_loc, "jmp to end")
+      @code.emit_backup(saved_loc1)
+      @code.emit_rm_abs("JEQ", @code.ac, current_loc, "if: jmp to else")
       @code.emit_restore
+      if p3 != nil
+        current_loc = @code.emit_skip(0)
+        @code.emit_backup(saved_loc2)
+        @code.emit_rm_abs("LDA", @code.pc, current_loc, "jmp to end")
+        @code.emit_restore
+      end
       @code.emit_comment("<- if")
 
     when "readK"
@@ -110,14 +106,27 @@ class IntermediateCode
       c_gen(p1)
       saved_loc2 = @code.emit_skip(1)
       @code.emit_backup(saved_loc2)
-      @code.emit_rm_abs("LDA", @pc, saved_loc1, "")
+      c_gen(p2)
+      current_loc = @code.emit_skip(0)
+      @code.emit_backup(saved_loc2)
+      @code.emit_rm_abs("JEQ", @code.ac, current_loc + 1, "while: jmp back to test")
+      @code.emit_rm_abs("LDA", @code.pc, saved_loc1, "")
       @code.emit_comment("<- while")
 
     when "blockK"
       @code.emit_comment("-> block")
-      t.children each do | child |
+      t.children.each do | child |
         gen_stmt(child)
       end
+
+    when "readK"
+      @code.emit_ro("IN", @code.ac, 0, 0, "read: store value")
+      loc = get_loc(t.token.lexeme)
+      @code.emit_rm("ST", @code.ac, loc, @code.gp, "read: store value")
+
+    when "writeK"
+      c_gen(t.children[1])
+      @code.emit_ro("OUT", @code.ac, 0, 0, "write ac")
 
     else
       puts "[ERROR] #{t}"
@@ -144,7 +153,6 @@ class IntermediateCode
       @code.emit_comment("<- Id")
 
     when "opK"
-
       @code.emit_comment("-> Op")
       p1 = t.children[0]
       p2 = t.children[1]
@@ -155,54 +163,64 @@ class IntermediateCode
       @tmp_offset += 1
       @code.emit_rm("LD", @code.ac1, @tmp_offset, @code.mp, "op: load left")
 
-      case t.token.lexeme
-      when "+"
-        @code.emit_ro("ADD", @code.ac, @code.ac1, @code.ac, "op +")
-      when "-"
-        @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op -")
-      when "*"
-        @code.emit_ro("MUL", @code.ac, @code.ac1, @code.ac, "op *")
-      when "/"
-        @code.emit_ro("DIV", @code.ac, @code.ac1, @code.ac, "op /")
-      when "<"
-        @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op <=")
-        @code.emit_rm("JLT", @code.ac, 2, @code.pc, "jump if true")
-        @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
-        @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
-        @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
-      when "<="
-        @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op <")
-        @code.emit_rm("JLE", @code.ac, 2, @code.pc, "jump if true")
-        @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
-        @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
-        @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
-      when ">"
-        @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op >")
-        @code.emit_rm("JGT", @code.ac, 2, @code.pc, "jump if true")
-        @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
-        @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
-        @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
-      when ">="
-        @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op >=")
-        @code.emit_rm("JGE", @code.ac, 2, @code.pc, "jump if true")
-        @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
-        @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
-        @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
-      when "=="
-        @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op ==")
-        @code.emit_rm("JEQ", @code.ac, 2, @code.pc, "jump if true")
-        @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
-        @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
-        @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
-      when "!="
-        @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op !=")
-        @code.emit_rm("JNE", @code.ac, 2, @code.pc, "jump if true")
-        @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
-        @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
-        @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
-      else
-        puts "[ERROR] #{t}"
-      end
+    when "expK"
+      @code.emit_comment("-> Op")
+      p1 = t.children[0]
+      p2 = t.children[1]
+      c_gen(p1)
+      @code.emit_rm("ST", @code.ac, @tmp_offset, @code.mp, "op: push left")
+      @tmp_offset = @tmp_offset - 1
+      c_gen(p2)
+      @tmp_offset = @tmp_offset + 1
+      @code.emit_rm("LD", @code.ac1, @tmp_offset, @code.mp, "op: load left")
+        case t.token.lexeme
+        when "+"
+          @code.emit_ro("ADD", @code.ac, @code.ac1, @code.ac, "op +")
+        when "-"
+          @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op -")
+        when "*"
+          @code.emit_ro("MUL", @code.ac, @code.ac1, @code.ac, "op *")
+        when "/"
+          @code.emit_ro("DIV", @code.ac, @code.ac1, @code.ac, "op /")
+        when "<"
+          @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op <=")
+          @code.emit_rm("JLT", @code.ac, 2, @code.pc, "jump if true")
+          @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
+          @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
+          @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
+        when "<="
+          @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op <")
+          @code.emit_rm("JLE", @code.ac, 2, @code.pc, "jump if true")
+          @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
+          @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
+          @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
+        when ">"
+          @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op >")
+          @code.emit_rm("JGT", @code.ac, 2, @code.pc, "jump if true")
+          @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
+          @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
+          @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
+        when ">="
+          @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op >=")
+          @code.emit_rm("JGE", @code.ac, 2, @code.pc, "jump if true")
+          @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
+          @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
+          @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
+        when "=="
+          @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op ==")
+          @code.emit_rm("JEQ", @code.ac, 2, @code.pc, "jump if true")
+          @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
+          @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
+          @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
+        when "!="
+          @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op !=")
+          @code.emit_rm("JNE", @code.ac, 2, @code.pc, "jump if true")
+          @code.emit_rm("LDC", @code.ac, 0, @code.ac, "false case")
+          @code.emit_rm("LDA", @code.pc, 1, @code.pc, "unconditional jmp")
+          @code.emit_rm("LDC", @code.ac, 1, @code.ac, "true case")
+        else
+          puts "[ERROR] #{t}"
+        end
 
     else
       @code.emit_comment("Bug: Unknown operator")
@@ -234,7 +252,6 @@ class IntermediateCode
     c_gen(t)
     @code.emit_comment("End of execution.")
     @code.emit_ro("HALT", 0, 0, 0, "")
-    @code.create_files
   end
 
 end
