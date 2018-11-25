@@ -35,13 +35,6 @@ class IntermediateCode
   end
 
   def gen_stmt(t)
-    p1 = nil
-    p2 = nil
-    p3 = nil
-    saved_loc1 = nil
-    saved_loc2 = nil
-    current_loc = nil
-    loc = nil
 
     case t.kind
 
@@ -85,12 +78,11 @@ class IntermediateCode
       @code.emit_backup(saved_loc1)
       @code.emit_rm_abs("JEQ", @code.ac, current_loc, "if: jmp to else")
       @code.emit_restore
-      if p3 != nil
-        current_loc = @code.emit_skip(0)
-        @code.emit_backup(saved_loc2)
-        @code.emit_rm_abs("LDA", @code.pc, current_loc, "jmp to end")
-        @code.emit_restore
-      end
+      c_gen(p3)
+      current_loc = @code.emit_skip(0)
+      @code.emit_backup(saved_loc2)
+      @code.emit_rm_abs("LDA", @code.pc, current_loc, "jmp to end")
+      @code.emit_restore
       @code.emit_comment("<- if")
 
     when "readK"
@@ -153,17 +145,6 @@ class IntermediateCode
       @code.emit_comment("<- Id")
 
     when "opK"
-      @code.emit_comment("-> Op")
-      p1 = t.children[0]
-      p2 = t.children[1]
-      c_gen(p1)
-      @code.emit_rm("ST", @code.ac, @tmp_offset, @code.mp, "op: push left")
-      @tmp_offset -= 1
-      c_gen(p2)
-      @tmp_offset += 1
-      @code.emit_rm("LD", @code.ac1, @tmp_offset, @code.mp, "op: load left")
-
-    when "expK"
       @code.emit_comment("-> Op")
       p1 = t.children[0]
       p2 = t.children[1]

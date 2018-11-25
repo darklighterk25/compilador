@@ -13,7 +13,7 @@ class SemanticAnalyzer < TokenTypes
     super()
     @errors = "Errores semánticos: \n" # En caso de que haya error, se concatenará en esta variable.
     @hash_table = { }
-    @location = 0 # Simula direcciones de memoria.
+    @location = 1 # Simula direcciones de memoria.
     @syntax_tree = syntax_tree
     @table = table # Tabla del entorno gráfico.
     @tree_list = tree_list

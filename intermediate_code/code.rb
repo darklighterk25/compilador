@@ -50,7 +50,7 @@ class Code
 	end
 
 	def emit_rm_abs(op, r, a, c)
-		@file += "#{@emit_loc}: #{op} #{r} #{a - @emit_loc + 1} #{pc}\n"
+		@file += "#{@emit_loc}: #{op} #{r} #{a - (@emit_loc + 1)} #{pc}\n"
 		@emit_loc += 1
 		if @high_emit_loc < @emit_loc
 			@high_emit_loc =  @emit_loc
