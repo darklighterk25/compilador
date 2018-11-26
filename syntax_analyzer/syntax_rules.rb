@@ -253,6 +253,7 @@ module SyntaxRules
       op_node = new_node("expression", "opK", op_token)
       exp_token = Token.new(@TOKEN_TYPE[:integer], '1', 1, t.token.location, @TOKEN_STYLE[:integer])
       exp_node = new_node("expression", "constK", exp_token)
+      exp_node.value = exp_node.token.lexeme.to_i
 
       assign_node << t
       assign_node << op_node

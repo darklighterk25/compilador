@@ -78,6 +78,9 @@ class IDE < FXMainWindow
   private
   def compile
     text_control
+    @lexical_table.clearItems
+    @syntax_tree_list.clearItems
+    @semantic_tree_list.clearItems
     lexical_analysis
     syntax_analysis
     semantic_analysis
