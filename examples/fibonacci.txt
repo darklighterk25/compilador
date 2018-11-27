@@ -1,0 +1,19 @@
+main {
+	integer n, first, next, c;
+ 	first := 0;
+	second := 1;
+	c := 0;
+	write "Inserte numero de elementos: ", first;
+	read n;
+	while (c < n) {
+		if (c <= 1) then {
+			next := c;
+		} else {
+		next := first + second;
+		first := second;
+		second := next;
+		}
+		//write "fibonacci", next;
+		c := c+1;
+	}
+}
