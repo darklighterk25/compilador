@@ -36,7 +36,7 @@ module SemanticRules
         update_variable(t.token.lexeme, t.token.location[:row])
       else
         t.value = "error"
-        msj = "[ERROR] '#{identifier.token.lexeme}' variable is not declared. Line: #{identifier.token.location[:row]}\n"
+        msj = "[ERROR] '#{t.token.lexeme}' variable is not declared. Line: #{t.token.location[:row]}\n"
         error(msj)
       end
     else
