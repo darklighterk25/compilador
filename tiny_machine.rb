@@ -59,7 +59,8 @@ class Instruction
 end
 
 class Machine
-	def initialize
+	def initialize(text_field)
+		@text_field = text_field
 		@iaddr_size = 1024
 		@daddr_size = 1024
 		@no_regs = 8
@@ -67,9 +68,7 @@ class Machine
 		@i_mem = []
 		@d_mem = []
 		@reg = []
-		@op_code_tab = ["HALT", "INI", "INF", "OUT", "OUTS", "ADD", "SUB", "MUL", "DIV",
-						"????", "LD", "ST", "????", "LDA", "LDC", "JLT",
-						"JLE", "JGT", "JGE", "JEQ", "JNE", "????"]
+		@op_code_tab = %w[HALT INI INF OUT OUTS ADD SUB MUL DIV ???? LD ST ???? LDA LDC JLT JLE JGT JGE JEQ JNE ????]
 		@step_result_tab = ["OK", "Halted", "Instruction Memory Fault",
 							"Data Memory Fault", "Division by zero"]
 
@@ -110,11 +109,11 @@ class Machine
 	end
 
 	def error(msg, line, instruction)
-		puts "Line: #{line}"
-		if inst >= 0
-			puts "(Instruction #{instruction})"
+		@text_field.appendText("Line: #{line}\n")
+		if instruction >= 0
+			@text_field.appendText("(Instruction #{instruction})\n")
 		end
-		puts "\n"
+		@text_field.appendText("\n")
 	end
 
 	def get_op_code(opcode)
@@ -170,7 +169,7 @@ class Machine
 					end
 				end
 				if arg3 < 0 || arg3 >= @no_regs
-					error("Bad third register")
+					error("Bad third register", line_number, loc)
 				end
 			end 
 			
@@ -217,20 +216,20 @@ class Machine
 			input = gets.chomp
 			begin  
 			    @reg[r] = Integer(input)  
-			rescue  
-			    puts 'TM ERROR: Ilegal integer value'  
+			rescue
+			    @text_field.appendText("TM ERROR: Ilegal integer value\n")
 			end
 		when opcode.op_inf
 			input = gets.chomp
 			begin  
 			    @reg[r] = Float(input)  
 			rescue  
-			    puts 'TM ERROR: Ilegal float value'  
+			    @text_field.appendText("TM ERROR: Ilegal float value\n")
 			end
 		when opcode.op_outs
-			puts current_instruction.iarg1
+			@text_field.appendText("#{current_instruction.iarg1}\n")
 		when opcode.op_out
-			puts @reg[r]
+			@text_field.appendText("#{@reg[r]}\n")
 		when opcode.op_add
 			@reg[r] = @reg[s] + @reg[t]
 		when opcode.op_subb
@@ -287,7 +286,3 @@ class Machine
 		end
 	end
 end
-
-tiny_machine = Machine.new
-tiny_machine.read_instruction
-tiny_machine.run

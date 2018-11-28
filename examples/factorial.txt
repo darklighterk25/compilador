@@ -1,14 +1,13 @@
 main{
-integer x, fact;
-read x;
-if ( x > 0 ) then {
-fact := 1;
-do{
-fact := fact * x; 
-write "Fact: ", fact;
-write "x: ", x;
-x:= x -1;
-}until(x<=1);
-write "Result: ", fact;
-}
+	integer x, fact;
+	write "Introduce un valor";
+	read x;
+	if ( x > 0 ) then {
+		fact := 1;
+		do{
+			fact := fact * x; 
+			x:= x -1;
+		}until(x<=1);
+		write "Result: ", fact;
+	}
 }

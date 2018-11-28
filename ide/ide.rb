@@ -5,6 +5,7 @@ require_relative '../semantic_analyzer/semantic_analyzer'
 require_relative '../syntax_analyzer/syntax_analyzer'
 require_relative '../utils/modules/files'
 require_relative '../utils/modules/icons'
+require_relative '../tiny_machine'
 
 class IDE < FXMainWindow
 
@@ -296,6 +297,11 @@ class IDE < FXMainWindow
     if (@errors_text.text.eql?("Errores semánticos: \n")) # Condición para comprobar que no hubo errores semánticos.
       @errors_text.text = ""
       @intermediate_code = IntermediateCode.new(@intermediate_text, @results_text, @semantic_analyzer.syntax_tree, @semantic_analyzer.hash_table)
+      Thread.new do
+        tiny_machine = Machine.new(@results_text)
+        tiny_machine.read_instruction
+        tiny_machine.run
+      end
     end
   end
 
