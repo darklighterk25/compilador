@@ -8,30 +8,32 @@ class Opclass
 end
 
 class Opcode
-	attr_reader :op_halt, :op_in, :op_out, :op_add, :op_subb, :op_mul, :op_div,
+	attr_reader :op_halt, :op_ini, :op_inf, :op_out, :op_outs, :op_add, :op_subb, :op_mul, :op_div,
 				:op_rr_lim, :op_ld, :op_st, :op_rm_lim, :op_lda, :op_ldc, :op_jlt,
 				:op_jle, :op_jgt, :op_jge, :op_jeq, :op_jne, :op_ra_lim
 	def initialize
 		@op_halt = 0
-		@op_in = 1
-		@op_out = 2
-		@op_add = 3
-		@op_subb = 4
-		@op_mul = 5
-		@op_div = 6
-		@op_rr_lim = 7
-		@op_ld = 8
-		@op_st = 9
-		@op_rm_lim = 10
-		@op_lda = 11
-		@op_ldc = 12
-		@op_jlt = 13
-		@op_jle = 14
-		@op_jgt = 15
-		@op_jge = 16
-		@op_jeq = 17
-		@op_jne = 18
-		@op_ra_lim = 19
+		@op_ini = 1
+		@op_inf = 2
+		@op_out = 3
+		@op_outs = 4
+		@op_add = 5
+		@op_subb = 6
+		@op_mul = 7
+		@op_div = 8
+		@op_rr_lim = 9
+		@op_ld = 10
+		@op_st = 11
+		@op_rm_lim = 12
+		@op_lda = 13
+		@op_ldc = 14
+		@op_jlt = 15
+		@op_jle = 16
+		@op_jgt = 17
+		@op_jge = 18
+		@op_jeq = 19
+		@op_jne = 20
+		@op_ra_lim = 21
 	end
 end
 
@@ -65,7 +67,7 @@ class Machine
 		@i_mem = []
 		@d_mem = []
 		@reg = []
-		@op_code_tab = ["HALT", "IN", "OUT", "ADD", "SUB", "MUL", "DIV",
+		@op_code_tab = ["HALT", "INI", "INF", "OUT", "OUTS", "ADD", "SUB", "MUL", "DIV",
 						"????", "LD", "ST", "????", "LDA", "LDC", "JLT",
 						"JLE", "JGT", "JGE", "JEQ", "JNE", "????"]
 		@step_result_tab = ["OK", "Halted", "Instruction Memory Fault",
@@ -149,20 +151,29 @@ class Machine
 			else
 				op = get_op_code(data[1])
 			end
-			arg1 = to_num(data[2])
-			arg2 = to_num(data[3])
-			arg3 = to_num(data[4])
-			if arg1 < 0 || arg1 >= @no_regs
-				error("Bad first register", line_number, loc)
-			end
-			if op < 7
-				if arg2 < 0 || arg2 >= @no_regs
-					error("Bad second register", line_number, loc)
+
+			if op == ophalt.op_outs
+				msg = line.split(/"([^"]*)"/)
+				arg1 = msg[1]
+				arg2 = 0
+				arg3 = 0
+			else
+				arg1 = to_num(data[2])
+				arg2 = to_num(data[3])
+				arg3 = to_num(data[4])
+				if arg1 < 0 || arg1 >= @no_regs
+					error("Bad first register", line_number, loc)
 				end
-			end
-			if arg3 < 0 || arg3 >= @no_regs
-				error("Bad third register")
-			end
+				if op < 9
+					if arg2 < 0 || arg2 >= @no_regs
+						error("Bad second register", line_number, loc)
+					end
+				end
+				if arg3 < 0 || arg3 >= @no_regs
+					error("Bad third register")
+				end
+			end 
+			
 			@i_mem[loc].iop = op
 			@i_mem[loc].iarg1 = arg1
 			@i_mem[loc].iarg2 = arg2
@@ -202,13 +213,22 @@ class Machine
 		case current_instruction.iop
 		when opcode.op_halt
 			return step_result.sr_halt
-		when opcode.op_in
+		when opcode.op_ini
 			input = gets.chomp
 			begin  
-			    @reg[r] = to_num(input)  
+			    @reg[r] = Integer(input)  
 			rescue  
-			    puts 'TM ERROR: Ilegal value'  
+			    puts 'TM ERROR: Ilegal integer value'  
 			end
+		when opcode.op_inf
+			input = gets.chomp
+			begin  
+			    @reg[r] = Float(input)  
+			rescue  
+			    puts 'TM ERROR: Ilegal float value'  
+			end
+		when opcode.op_outs
+			puts current_instruction.iarg1
 		when opcode.op_out
 			puts @reg[r]
 		when opcode.op_add

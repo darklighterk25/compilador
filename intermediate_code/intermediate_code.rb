@@ -86,7 +86,14 @@ class IntermediateCode
       @code.emit_comment("<- if")
 
     when "readK"
-      @code.emit_ro("IN", @code.ac, 0, 0, get_type(t.children[0].token.lexeme))
+      type = get_type(t.children[0].token.lexeme)
+      if type.eql?("integer")
+        @code.emit_ro("INI", @code.ac, 0, 0, type)
+      elsif type.eql?("float")
+        @code.emit_ro("INF", @code.ac, 0, 0, type)
+      else
+        puts "[ERROR] #{t}"
+      end
       loc = get_loc(t.children[0].token.lexeme)
       @code.emit_rm("ST", @code.ac, loc, @code.gp, "read: store value")
 
@@ -111,14 +118,12 @@ class IntermediateCode
         gen_stmt(child)
       end
 
-    when "readK"
-      @code.emit_ro("IN", @code.ac, 0, 0, "read: store value")
-      loc = get_loc(t.token.lexeme)
-      @code.emit_rm("ST", @code.ac, loc, @code.gp, "read: store value")
-
     when "writeK"
-      c_gen(t.children[1])
-      @code.emit_ro("OUT", @code.ac, 0, 0, "write ac")
+      @code.emit_write("OUTS", t.children[0].token.lexeme)
+      if t.children.length == 2
+        c_gen(t.children[1])
+        @code.emit_ro("OUT", @code.ac, 0, 0, "write ac")
+      end
 
     else
       puts "[ERROR] #{t}"
@@ -163,6 +168,8 @@ class IntermediateCode
           @code.emit_ro("MUL", @code.ac, @code.ac1, @code.ac, "op *")
         when "/"
           @code.emit_ro("DIV", @code.ac, @code.ac1, @code.ac, "op /")
+        when "%"
+          @code.emit_ro("MOD", @code.ac, @code.ac1, @code.ac, "op %")
         when "<"
           @code.emit_ro("SUB", @code.ac, @code.ac1, @code.ac, "op <=")
           @code.emit_rm("JLT", @code.ac, 2, @code.pc, "jump if true")

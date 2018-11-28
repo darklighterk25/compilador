@@ -21,6 +21,14 @@ class Code
 		end
 	end
 
+	def emit_write(op, text)
+		@file += "#{@emit_loc}: #{op} #{text}\n"
+		@emit_loc += 1
+		if @high_emit_loc < @emit_loc
+			@high_emit_loc =  @emit_loc
+		end
+	end
+
 	def emit_rm(op, r, d, s, c)
 		@file += "#{@emit_loc}: #{op} #{r} #{d} #{s}\n"
 		@emit_loc += 1
@@ -63,7 +71,7 @@ class Code
 		out_file.close
 	end
 
-  def emit_comment(comment)
+	def emit_comment(comment)
 		puts comment
 	end
 end

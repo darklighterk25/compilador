@@ -209,8 +209,10 @@ module SyntaxRules
       if t != nil
         t << new_node("expression", "stringK")
         match(@TOKEN_TYPE[:string])
-        match(@TOKEN_TYPE[:comma])
-        t << expression
+        if @token.type == @TOKEN_TYPE[:comma]
+          match(@TOKEN_TYPE[:comma])
+          t << expression
+        end
         match(@TOKEN_TYPE[:semicolon])
       end
     elsif @token.type == @TOKEN_TYPE[:string]

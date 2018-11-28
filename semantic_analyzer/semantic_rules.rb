@@ -199,8 +199,10 @@ module SemanticRules
 
   # Establece el valor de las expresiones en sentencias write
   def write_eval(t)
-    expression = t.last_child
-    just_id(expression)
+    if t.children.length == 2
+      expression = t.last_child
+      just_id(expression)
+    end
   end
 
 end
