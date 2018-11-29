@@ -9,7 +9,7 @@ end
 
 class Opcode
 	attr_reader :op_halt, :op_ini, :op_inf, :op_out, :op_outs, :op_add, :op_subb, :op_mul, :op_div,
-				:op_rr_lim, :op_ld, :op_st, :op_rm_lim, :op_lda, :op_ldc, :op_jlt,
+				:op_mod, :op_rr_lim, :op_ld, :op_st, :op_rm_lim, :op_lda, :op_ldc, :op_jlt,
 				:op_jle, :op_jgt, :op_jge, :op_jeq, :op_jne, :op_ra_lim
 	def initialize
 		@op_halt = 0
@@ -21,19 +21,20 @@ class Opcode
 		@op_subb = 6
 		@op_mul = 7
 		@op_div = 8
-		@op_rr_lim = 9
-		@op_ld = 10
-		@op_st = 11
-		@op_rm_lim = 12
-		@op_lda = 13
-		@op_ldc = 14
-		@op_jlt = 15
-		@op_jle = 16
-		@op_jgt = 17
-		@op_jge = 18
-		@op_jeq = 19
-		@op_jne = 20
-		@op_ra_lim = 21
+		@op_mod = 9
+		@op_rr_lim = 10
+		@op_ld = 11
+		@op_st = 12
+		@op_rm_lim = 13
+		@op_lda = 14
+		@op_ldc = 15
+		@op_jlt = 16
+		@op_jle = 17
+		@op_jgt = 18
+		@op_jge = 19
+		@op_jeq = 20
+		@op_jne = 21
+		@op_ra_lim = 22
 	end
 end
 
@@ -68,7 +69,7 @@ class Machine
 		@i_mem = []
 		@d_mem = []
 		@reg = []
-		@op_code_tab = %w[HALT INI INF OUT OUTS ADD SUB MUL DIV ???? LD ST ???? LDA LDC JLT JLE JGT JGE JEQ JNE ????]
+		@op_code_tab = %w[HALT INI INF OUT OUTS ADD SUB MUL DIV MOD ???? LD ST ???? LDA LDC JLT JLE JGT JGE JEQ JNE ????]
 		@step_result_tab = ["OK", "Halted", "Instruction Memory Fault",
 							"Data Memory Fault", "Division by zero"]
 
@@ -163,7 +164,7 @@ class Machine
 				if arg1 < 0 || arg1 >= @no_regs
 					error("Bad first register", line_number, loc)
 				end
-				if op < 9
+				if op < 10
 					if arg2 < 0 || arg2 >= @no_regs
 						error("Bad second register", line_number, loc)
 					end
@@ -244,6 +245,14 @@ class Machine
 			if @reg[t] != 0
 				@reg[r] = @reg[s] / @reg[t]
 			else
+				@text_field.appendText("Division by zero!\n")
+				return step_result.sr_zero_divide
+			end
+		when opcode.op_mod
+			if @reg[t] != 0
+				@reg[r] = @reg[s] % @reg[t]
+			else
+				@text_field.appendText("Division by zero!\n")
 				return step_result.sr_zero_divide
 			end
 		when opcode.op_ld
