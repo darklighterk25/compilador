@@ -139,11 +139,16 @@ class SemanticAnalyzer < TokenTypes
     when "declaration"
       identifiers = t.children
       identifiers.each do |id|
+        if t.token.lexeme.eql?("integer") || t.token.lexeme.eql?("bool")
+            id.value = 0
+          else
+            id.value = 0.0
+          end
         if variable_exists?(id.token.lexeme)
           msj = "[ERROR] '#{id.token.lexeme}' variable was already declared. Line: #{id.token.location[:row]}\n"
           error(msj)
         else
-          new_id = Variable.new(@location, id.token.location[:row], 0, t.token.lexeme)
+          new_id = Variable.new(@location, id.token.location[:row], id.value, t.token.lexeme)
           insert_variable(id.token.lexeme, new_id)
         end
       end

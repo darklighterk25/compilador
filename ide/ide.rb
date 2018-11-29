@@ -297,6 +297,7 @@ class IDE < FXMainWindow
     if (@errors_text.text.eql?("Errores semánticos: \n")) # Condición para comprobar que no hubo errores semánticos.
       @errors_text.text = ""
       @intermediate_code = IntermediateCode.new(@intermediate_text, @results_text, @semantic_analyzer.syntax_tree, @semantic_analyzer.hash_table)
+      @results_text.text = ""
       Thread.new do
         tiny_machine = Machine.new(@results_text)
         tiny_machine.read_instruction

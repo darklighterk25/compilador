@@ -216,15 +216,19 @@ class Machine
 			input = gets.chomp
 			begin  
 			    @reg[r] = Integer(input)  
+			    @text_field.appendText("#{@reg[r]}\n")
 			rescue
 			    @text_field.appendText("TM ERROR: Ilegal integer value\n")
+			    return step_result.sr_halt
 			end
 		when opcode.op_inf
 			input = gets.chomp
 			begin  
 			    @reg[r] = Float(input)  
+			    @text_field.appendText("#{@reg[r]}\n")
 			rescue  
 			    @text_field.appendText("TM ERROR: Ilegal float value\n")
+			    return step_result.sr_halt
 			end
 		when opcode.op_outs
 			@text_field.appendText("#{current_instruction.iarg1}\n")
@@ -284,5 +288,6 @@ class Machine
 		while step_result == a.sr_okay
 			step_result = step_tm
 		end
+		@text_field.appendText("Process Excited!\n")
 	end
 end
