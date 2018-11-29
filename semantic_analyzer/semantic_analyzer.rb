@@ -7,11 +7,12 @@ require_relative '../utils/classes/variable'
 class SemanticAnalyzer < TokenTypes
 
   include SemanticRules
-  attr_reader :errors, :hash_table, :syntax_tree, :tree_list
+  attr_reader :errors_text, :errors, :hash_table, :syntax_tree, :tree_list
 
   def initialize(syntax_tree, tree_list, table)
     super()
-    @errors = "Errores semánticos: \n" # En caso de que haya error, se concatenará en esta variable.
+    @errors_text = "Errores semánticos: \n" # En caso de que haya error, se concatenará en esta variable.
+    @errors = false
     @hash_table = { }
     @location = 1 # Simula direcciones de memoria.
     @syntax_tree = syntax_tree
@@ -23,6 +24,7 @@ class SemanticAnalyzer < TokenTypes
   # Inicia el análisis semántico
   private
   def run
+    @errors = false
     build_symtab(@syntax_tree) # Construye e inicializa la tabla de símbolos
     evaluate_tree(@syntax_tree) # Recorrido en orden del arbol para evaluar los nodos y detectar errores
     generate_tree(@syntax_tree, nil) # Genera el árbol gráfico.
@@ -129,7 +131,7 @@ class SemanticAnalyzer < TokenTypes
   # Cadena de errores semanticos
   private
   def error(msj)
-    @errors +=  msj
+    @errors_text +=  msj
   end
 
   # Inserta los identificadores declarados en la tabla de simbolos
@@ -146,6 +148,7 @@ class SemanticAnalyzer < TokenTypes
           end
         if variable_exists?(id.token.lexeme)
           msj = "[ERROR] '#{id.token.lexeme}' variable was already declared. Line: #{id.token.location[:row]}\n"
+          @errors = true
           error(msj)
         else
           new_id = Variable.new(@location, id.token.location[:row], id.value, t.token.lexeme)

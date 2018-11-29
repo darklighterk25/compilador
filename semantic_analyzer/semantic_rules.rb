@@ -37,6 +37,7 @@ module SemanticRules
       else
         t.value = "error"
         msj = "[ERROR] '#{t.token.lexeme}' variable is not declared. Line: #{t.token.location[:row]}\n"
+        @errors = true
         error(msj)
       end
     else
@@ -58,6 +59,7 @@ module SemanticRules
         else
           left_operand.value = "error"
           msj = "[ERROR] '#{left_operand.token.lexeme}' variable is not declared. Line: #{left_operand.token.location[:row]}\n"
+          @errors = true
           error(msj)
         end
       end
@@ -68,11 +70,14 @@ module SemanticRules
         else
           right_operand.value = "error"
           msj = "[ERROR] '#{right_operand.token.lexeme}' variable is not declared. Line: #{right_operand.token.location[:row]}\n"
+          @errors = true
           error(msj)
         end
       end
       if left_operand.value.eql?("error") || right_operand.value.eql?("error")
         t.value = "error"
+      elsif left_operand.value.eql?("warning") || right_operand.value.eql?("warning")
+        t.value = "warning"
       else
         case t.token.lexeme
         when "<="
@@ -97,7 +102,7 @@ module SemanticRules
           if right_operand.value != 0
             t.value = left_operand.value / right_operand.value
           else
-            t.value = "error"
+            t.value = "warning"
             msj = "[WARNING] Division by zero. Line: #{right_operand.token.location[:row]}\n"
             error(msj)
           end
@@ -106,13 +111,14 @@ module SemanticRules
             if right_operand.value != 0
               t.value = left_operand.value % right_operand.value
             else
-              t.value = "error"
+              t.value = "warning"
               msj = "[WARNING] Division by zero. Line: #{right_operand.token.location[:row]}\n"
               error(msj)
             end
           else
             t.value = "error"
             msj = "[ERROR] Invalid operands, only integer operands are allowed for the binary operator '%'. Line: #{t.token.location[:row]}\n"
+            @errors = true
             error(msj)
           end
         else
@@ -133,12 +139,16 @@ module SemanticRules
       identifier.type = get_type(identifier.token.lexeme)
       if expression.value.eql?("error")
         msj = "[ERROR] Expression value in the assignment is invalid. Line: #{t.token.location[:row]}\n"
+        @errors = true
         error(msj)
       else
         case identifier.type
         when "integer"
-          if !expression.value.is_a?(Integer)
+          if expression.value.eql?("warning")
+            identifier.value = 0
+          elsif !expression.value.is_a?(Integer)
             msj = "[ERROR] Cannot assign non-integer values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
+            @errors = true
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
           else
@@ -146,8 +156,11 @@ module SemanticRules
             set_value(identifier.token.lexeme, identifier.value)
           end
         when "float"
-          if !(expression.value.is_a?(Float))
+          if expression.value.eql?("warning")
+            identifier.value = 0.0
+          elsif !(expression.value.is_a?(Float))
             msj = "[ERROR] Cannot assign non-float values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
+            @errors = true
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
           else
@@ -157,6 +170,7 @@ module SemanticRules
         when "bool"
           if expression.value != true && expression.value != false
             msj = "[ERROR] Cannot assign non-boolean values to '#{identifier.token.lexeme}' variable. Line: #{identifier.token.location[:row]}\n"
+            @errors = true
             error(msj)
             identifier.value = get_value(identifier.token.lexeme)
           else
@@ -170,6 +184,7 @@ module SemanticRules
       end
     else
       msj = "[ERROR] Unable to assign value to '#{identifier.token.lexeme}' variable since it is not declared. Line: #{identifier.token.location[:row]}\n"
+      @errors = true
       error(msj)
       identifier.value = "error"
     end
@@ -181,6 +196,7 @@ module SemanticRules
     just_id(expression)
     if expression.value != true && expression.value != false
       msj = "[ERROR] If expression is not boolean. Line: #{expression.token.location[:row]}\n"
+      @errors = true
       error(msj)
     end
   end
@@ -191,6 +207,7 @@ module SemanticRules
     if !variable_exists?(identifier.token.lexeme)
       identifier.value = "error"
       msj = "[ERROR] Unable to read '#{identifier.token.lexeme}' variable since it is not declared. Line: #{identifier.token.location[:row]}\n"
+      @errors = true
       error(msj)
     else
       update_variable(identifier.token.lexeme, identifier.token.location[:row])
