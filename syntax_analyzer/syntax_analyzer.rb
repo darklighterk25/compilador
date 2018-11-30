@@ -15,10 +15,24 @@ class SyntaxAnalyzer < TokenTypes
     @iterator = -1 # Ubicación del token actual en el array.
     @name = -1 # Cada nodo del árbol debe llamarse diferente.
     @tokens = tokens # Array de tokens proveniente del analizador léxico.
+    delete_comments
     @token = get_token # Token actual.
     @tree_list = tree_list # Árbol del entorno gráfico.
     @errors = "Errores sintácticos:\n\n" # En caso de que haya error, se concatenará en esta variable.
     run
+  end
+
+  #Elimina los tokens de comentarios
+  private
+  def delete_comments
+    i = 0
+    while i < @tokens.length
+      if @tokens[i].type == @TOKEN_TYPE[:comment]
+        @tokens.delete_at(i)
+        i -= 1
+      end
+      i += 1
+    end
   end
 
   # Genera el árbol desplegable para el entorno gráfico.
