@@ -104,11 +104,11 @@ class IntermediateCode
       saved_loc1 = @code.emit_skip(0)
       c_gen(p1)
       saved_loc2 = @code.emit_skip(1)
-      @code.emit_backup(saved_loc2)
       c_gen(p2)
       current_loc = @code.emit_skip(0)
       @code.emit_backup(saved_loc2)
       @code.emit_rm_abs("JEQ", @code.ac, current_loc + 1, "while: jmp back to test")
+      @code.emit_restore
       @code.emit_rm_abs("LDA", @code.pc, saved_loc1, "")
       @code.emit_comment("<- while")
 
