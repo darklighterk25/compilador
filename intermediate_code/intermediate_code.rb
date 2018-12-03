@@ -10,8 +10,6 @@ class IntermediateCode
     @tmp_offset = 0
     @code = Code.new(@intermediate_code)
     @hash_table = hash_table
-    @break = false
-    @loc_break = 0
     code_gen(semantic_tree)
     @code.write_code
   end
@@ -53,13 +51,6 @@ class IntermediateCode
       @code.emit_comment("do: jump after body comes back here")
       c_gen(p1)
       c_gen(p2)
-      if @break
-        current_loc = @code.emit_skip(0)
-        @code.emit_backup(@loc_break)
-        @code.emit_rm_abs("LDA", @code.pc, current_loc + 1, "do: jmp to end")
-        @break = false
-        @code.emit_restore
-      end
       @code.emit_rm_abs("JEQ", @code.ac, saved_loc1, "do: jmp back to body")
       @code.emit_comment("<- do")
 
