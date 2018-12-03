@@ -110,11 +110,10 @@ class Machine
 	end
 
 	def error(msg, line, instruction)
-		@text_field.appendText("Line: #{line}\n")
+		@text_field.appendText("#{msg} | Line: #{line}\n")
 		if instruction >= 0
-			@text_field.appendText("(Instruction #{instruction})\n")
+			@text_field.appendText("#{msg} (Instruction #{instruction})\n")
 		end
-		@text_field.appendText("\n")
 	end
 
 	def get_op_code(opcode)
@@ -232,7 +231,7 @@ class Machine
 			    return step_result.sr_halt
 			end
 		when opcode.op_outs
-			@text_field.appendText("#{current_instruction.iarg1}\n")
+			@text_field.appendText("#{current_instruction.iarg1}")
 		when opcode.op_out
 			@text_field.appendText("#{@reg[r]}\n")
 		when opcode.op_add
@@ -297,6 +296,6 @@ class Machine
 		while step_result == a.sr_okay
 			step_result = step_tm
 		end
-		@text_field.appendText("Process Excited!\n")
+		@text_field.appendText("\nProcess Excited!")
 	end
 end

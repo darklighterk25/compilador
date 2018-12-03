@@ -1,0 +1,19 @@
+main {
+	integer n, c, i, j;
+
+	write "Total: ";
+	read n;
+
+	i := 0;
+	while ( i < n ) {
+		c := 1;
+		j := 0;
+		write "Linea ", (i+1);
+		while ( j <= i ) {
+			write "", c;
+			c := c * (i-j)/(j+1);
+			j++;
+		}
+		i++;
+	}
+}
