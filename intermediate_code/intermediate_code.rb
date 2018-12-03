@@ -8,7 +8,7 @@ class IntermediateCode
     @semantic_tree = semantic_tree
     @intermediate_code.appendText("Código intermedio\n")
     @tmp_offset = 0
-    @code = Code.new()
+    @code = Code.new(@intermediate_code)
     @hash_table = hash_table
     @break = false
     @loc_break = 0
