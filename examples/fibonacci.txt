@@ -1,5 +1,5 @@
 main {
-	integer n, first, next, c;
+	integer n, first, second, next, c;
  	first := 0;
 	second := 1;
 	c := 0;
@@ -13,7 +13,7 @@ main {
 		first := second;
 		second := next;
 		}
-		//write "fibonacci", next;
+		write "", next;
 		c := c+1;
 	}
 }

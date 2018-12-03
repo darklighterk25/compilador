@@ -1,0 +1,38 @@
+main {
+	integer op, res, x, y;
+	op := 1;
+	res := 1;
+	x := 1;
+	y := 1;
+
+	write "Valor de x: ";
+	read x;
+	write "x := ", x;
+	write "Valor de y: ";
+	read y;
+	write "y := ", y;
+	write "Operacion:";
+	write "1) Suma.";
+	write "2) Resta.";
+	write "3) Multiplicacion.";
+	write "4) Division.";
+	write "5) Modulo.";
+	read op;
+
+	if ( op == 1 ) then {
+		res := x + y;
+	}
+	if ( op == 2 ) then {
+		res := x - y;
+	}
+	if ( op == 3 ) then {
+		res := x * y;
+	}
+	if ( op == 4 ) then {
+		res := x / y;
+	}
+	if ( op == 5 ) then {
+		res := x % y;
+	}
+	write "Resultado: ", res;
+}

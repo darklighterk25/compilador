@@ -1,0 +1,13 @@
+main {
+	integer i, j;
+	i := 1;
+	while ( i < 10 ) {
+		j := 1;
+		while ( j < 10 ) {
+			write "i = ", i;
+			write "j = ", j;
+			j++;
+		}
+		i++;
+	}
+}
