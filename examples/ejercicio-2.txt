@@ -1,0 +1,12 @@
+main {
+	integer t, h;
+	t := 1;
+	h := 1;
+
+	write "Sonidos por minuto: ";
+	read h;
+
+	t := h/4+40;
+
+	write "Temperatura (En grados Farenheit): ", t;
+}

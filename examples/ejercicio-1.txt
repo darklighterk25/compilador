@@ -1,0 +1,29 @@
+main {
+	integer id, c1, c2, c3, c4, c5, prom;
+	id := 1;
+	c1 := 1;
+	c2 := 1;
+	c3 := 1;
+	c4:= 1;
+	c5 := 1;
+	prom := 1;
+
+	write "ID: ";
+	read id;
+	write "Calificacion 1: ";
+	read c1;
+	write "Calificacion 2: ";
+	read c2;
+	write "Calificacion 3: ";
+	read c3;
+	write "Calificacion 4: ";
+	read c4;
+	write "Calificacion 5: ";
+	read c5;
+
+	write "El ID es: ", id;
+
+	prom := (c1+c2+c3+c4+c5)/5;
+
+	write "El prmedio es: ", prom;
+}

@@ -1,0 +1,26 @@
+main {
+	float precio, impuesto;
+
+	write "Precio del articulo: ";
+	read precio;
+
+	// Los articulos con precio mayor a $500 tienen un impuesto del 50%.
+	impuesto := 1.5;
+
+	// Los articulos con precio entre $40 y $500 tiene un impuesto del 40%.
+	if ( precio <= 500 ) then {
+		impuesto := 1.4;
+	}
+	// Los articulos con un precio entre $20 y $40 tienen un impuesto del 30%.
+	if ( precio < 40 ) then {
+		impuesto := 1.3;
+	}
+	// Los articulos con un precio menor a $20 no generan impuestos.
+	if ( precio < 20 ) then {
+		impuesto := 1.0;
+	}
+
+	precio := precio * impuesto;
+
+	write "El precio total es de: ", precio;
+}
