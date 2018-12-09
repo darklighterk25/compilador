@@ -1,0 +1,40 @@
+main{
+	integer cantidad, tipo, locales;
+	float total, duracion;
+	total := 0.0;
+	locales := 0;
+	write "Numero de llamadas:";
+	read cantidad;
+	do{
+		write "Tipo: ";
+		read tipo;
+		write "Duracion: ";
+		read duracion;
+		if(tipo == 1)then{
+			if(duracion >= 3)then{
+				total := total + 7.59 * 3;
+				total := total + (duracion-3)*3.03;
+			}else{
+				total := duracion*7.59;
+			}
+		}
+		if(tipo == 2)then{
+			if(duracion >= 3)then{
+				total := total + 1.2 * 3;
+				total := total + (duracion-3)*0.48;
+			}else{
+				total := duracion*1.2;
+			}
+		}
+		if(tipo == 3)then{
+			if(locales > 50)then{
+				total := total + 0.6;	
+			}else{
+				locales++;
+			}
+		}
+		write "Total acumulado: ", total;
+		cantidad--;
+	}until(cantidad == 0);
+	write "TOTAL: ", total;
+}

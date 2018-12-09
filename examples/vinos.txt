@@ -1,0 +1,49 @@
+main{
+	integer anios, i;
+	float total, tot_anio, v1, v2, v3, v4, v5, v2_max, v2_anio;
+	float v1t, v2t, v3t, v4t, v5t;
+	v1t:=0.0;
+	v2t:=0.0;
+	v3t:=0.0;
+	v4t:=0.0;
+	v5t:=0.0;
+	i := 1;
+	total := 0.0;
+	v2_max := 0.0;
+	write "cantidad de anios: ";
+	read anios;
+	while(i<= anios){
+		write "Vino 1 anio ", i;
+		read v1;
+		write "Vino 2 anio ", i;
+		read v2;
+		write "Vino 3 anio ", i;
+		read v3;
+		write "Vino 4 anio ", i;
+		read v4;
+		write "Vino 5 anio ", i;
+		read v5;
+		v1t := v1t + v1;
+		v2t := v2t + v2;
+		v3t := v3t + v3;
+		v4t := v4t + v4;
+		v5t := v5t + v5;
+		tot_anio := v1+v2+v3+v4+v5;
+		if(v2>v2_max)then{
+			v2_max := v2;
+			v2_anio := i;
+		}
+		if(v3 == 0)then{
+			write "No se produjo vino 3 en el anio ", i;
+		}
+		write "TOTAL DEL ANIO: ", tot_anio;
+		i++;
+	}
+	write "TOTAL VINO 1: ", v1t;
+	write "TOTAL VINO 2: ", v2t;
+	write "TOTAL VINO 3: ", v3t;
+	write "TOTAL VINO 4: ", v4t;
+	write "TOTAL VINO 5: ", v5t;
+	write "MAYOR PRODUCCION VINO 2: ", v2_anio;
+	write "CANTIDAD: ", v2_max;
+}
